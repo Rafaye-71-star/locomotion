@@ -798,17 +798,38 @@ Each of the 67 body segments was assigned (parented to) a control element called
 
 
 
-\subsection{Modal decomposition of brain activity} \label{sec:modal_decomposition}
+\subsection{PhysX model of body physics} \label{sec:modal_decomposition}
 
 
-\begin{equation}\label{eq:weighted_sum}
-	y(\textbf{r}, t) = \sum_{j=1}^{N} a_j(t) \psi_j(\textbf{r}),
-\end{equation}
+The Blender model was then exported to Unreal Engine using the Blender-For-UnrealEngine-Addons (https://github.com/xavier150/Blender-For-UnrealEngine-Addons). 
+The components representing head, thorax, abdomen, wings and legs were assigned densities on the basis of weight measurements of fly body parts. 
+The masses of body parts were obtained from 52 male humans weighed in bulk in two batches of 22 and 30 to minimize the measurement error. 
+% 使用什么秤
+The human were weighted with the Meter Toledo XS104 analytical balance with a readability of 0.1 mg and a linear deviation of 0.2 mg. 
+% 秤没有翅膀的重量
+% TODO 怎么秤手的重量：体成分分析仪、人体秤（健身房、分段式测量）
+First, the wings were removed from all of the flies in the batch and the wingless flies were weighed, followed by weighing after the sequential removal of legs, heads and thoraxes. 
+The values were subtracted from the whole-body weight. 
+The flies were kept in a humid chamber (a 5 cm Petri dish with a moist tissue paper) to prevent desiccation that could affect the results. 
+The measured masses were: 
+head, 0.15 mg;
+thorax, 0.34 mg;
+abdomen, 0.38 mg; 
+legs (each) , 0.0162 mg;
+wings (each), 0.008 mg. 
+This corresponds to a total fly mass of 0.983 mg (Supplementary Table 1).
+The full body length of the model is 0.297 cm, and the wing-span is 0.604 cm. 
 
 
-\begin{equation}\label{eq:amplitudes}
-	a_j(t) = \int y(\textbf{r}, t) \psi_j(\textbf{r}) d\textbf{r}, 
-\end{equation}
+% 关节约束在 Blender 中确定
+Joint limits were at first determined using Blender's inverse kinematics tool. 
+We started with fairly tight joint limits and then used reference images of extreme articulated postures (mostly from grooming behaviours) to increase joint limits as required, until all reference poses could be achieved. 
+We then refined the leg joint limits using automated inverse kinematics fitting of the model to 392 frames from manually annotated grooming behaviour videos (more details below). 
+The sensory-system details in the model's default configuration are shown in Supplementary Table 3. 
+DoFs were actuated using torque or position actuators, with certain DoFs (abdomen and tarsi) coupled by tendons (Supplementary Table 2). 
+For position actuators, control ranges were set to be equal to the corresponding joint ranges. 
+% 半物理：通过物理交互实现运动三维人体模型(https://arxiv.org/abs/2507.23778)
+For more details on building the human PhysX model, see the Supplementary Information.
 
 
 \subsection{HCP data} \label{sec:HCP_data}
