@@ -19,7 +19,6 @@ jobs:
           working_directory: sn
           root_file: sn-article.tex
           texlive_version: 2020
-          latexmk_use_xelatex: true
           
       - name: Release
         uses: softprops/action-gh-release@v1
