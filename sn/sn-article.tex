@@ -250,128 +250,30 @@ Through inverse kinematics, we further show that our model supports a broad beha
 		% 三个铰合形成 球形关节
 		Groups of three hinge joints effectively form ball joints. 
 		Cube: 6-DoF free joint required for free CoM motion in the simulator and is not a part of human's internal DoFs.
+		\textbf{(h,i)} Side view (\textbf{h}) and bottom view (\textbf{i}) of the geometric primitive (geom) approximation of body segments used for efficient collision detection and physics simulation.
+		Blue, collision detection geoms; 
+		purple, geoms that have associated adhesion actuators; 
+		orange, wing ellipsoid geoms for simulating flight with the advanced fluid force model.
+		% contact force: 接触力
+		% joint actoators: 关节执行机构
+		\textbf{(j)}, Visualization of actuator forces generated when the model fly hangs upside down. 
+		The adhesion actuators of the front-right, middle-left and hind-right legs are actively gripping the ceiling (orange); 
+		the labrum (mouth) adhesors are also active; 
+		other actuators are inactive (white). 
+		The arrows visualize net contact forces proportional and opposite to the applied adhesion forces.
+		% abdominal abduction: 腹部外展
+		\textbf{(k)}, Exaggerated posture showing the coordinated activation of the abdominal abduction and tarsal flexion actuators. 
+		Abdominal joints and tarsal joints (yellow) are each coupled with a single tendon actuator that simultaneously actuates multiple DoFs.
 	} \label{fig:fig_1}
 \end{figure}
 
-% 面部
-Lastly, we investigated the possibility that units selective to various objects other than faces also emerge similarly in untrained neural networks.
-For this, we measured the responses of units in random networks to a stimulus dataset of ImageNet containing 1,000 classes of objects (\ref{fig:image_net}a).
-As a result, we found that selective units are observed in 39 classes among the 1,000 classes (\ref{fig:image_net}b,c).
-From the analysis using scrambled and texform control images, we confirmed that these object-selective units are not particularly selective to local image parts but are selective to a whole object, similar with units selective to faces
-(\ref{fig:image_net}b, inset,
-Gazania vs. Scrambled gazania, 
-$ n=100 $,
-one-sided rank-sum test,
-$ P = 2.67 \times 10^{-12} $,
-$ r_\textrm{rbc} = 4.89 \times 10^{-1} $,
-%
-Gazania vs. Texform gazania, 
-$ n = 100 $,
-one-sided rank-sum test, NS,
-$ P = 1.00 $,
-$ r_\textrm{rbc} = 3.17 \times 10^{-1} $,
-one-sided Kolmogorov-Smirnov test,
-$ P = 1.02 \times 10^{-2} $,
-$ d = 2.97 \times 10^{-2} $;
-% 
-Texform gazania vs. other-class,
-$ n = 100 $,
-one-sided Kolmogorov-Smirnov test,
-$ P = 3.45 \times 10^{-2} $,
-$ d = 2.55 \times 10^{-2} $
-).
-This result suggests that units selective innately to various objects such as faces can emerge in untrained neural networks.
-
-
-Next, to investigate the emergent condition of units selective to each object further, we sorted those 39 classes according to the number of selective units observed and computed the PFI using the RC method (\ref{fig:image_net}c,d).
-In general, we observed a tendency in which the PFIs of the large number group showed a relatively simple configuration of each preferred object class that was visually observable (\ref{fig:image_net}d, top), 
-whereas those of the small number classes represented a more complicated structure of the PFI (\ref{fig:image_net}d, bottom).
-From this result, we hypothesized that objects with a simple configuration, such as faces, can induce stronger clustering in the latent space representation than those of other object classes and therefore may have a greater likelihood of generating units selective to them.
-To validate our hypothesis, we used the dimension-reduction method~\cite{wold1987principal} to compare a clustered representation of each object class in terms of the raw pixel values and in the responses of Conv5.
-For quantification of the representational clustering of each class, we measured the silhouette index~\cite{kaufman2009finding} to estimate the consistency of data clustering.
-We found that there is a strong correlation between the silhouette index in the Conv5 latent space and the number of selective units observed
-(\ref{fig:image_net}e-g, Pearson correlation coefficient,
-$ n_\textrm{Net} = 50 $,
-$ r = 5.85 \times 10^{-1} $,
-$ P = 7.48 \times 10^{-5} $
-).
-This result demonstrates that objects with a simple profile, readily distinguishable from those of other objects statistically, lead to a strong clustering of abstracted responses in the DNN and are more likely to generate units selective to it.
-Furthermore, the relationship between the silhouette index and the number of units observed shows that the number of units increases as the silhouette index increases,
-with no selective units observed when the silhouette index is below 0.036 (\ref{fig:image_net}g, black dashed line).
-This result implies that there may be a threshold of the clustering level in the response embedding space, by which a unit selective to that object class can be defined and observed.
-In neuroscience, this may provide a possible explanation of why face-selective neurons are observed in various experiments while neurons selective to other objects are not observed as readily.
-Thus, the observed face-selectivity may not be a special case of tuning, 
-whereas selectivity to other visual objects can also arise in random networks simply due to the relatively simple configuration of the corresponding geometric components.
-
-
-
-
-
-
-
-% 人脸选择单元
-To simulate the emergence of face-selective neurons, we measured the responses of a biologically inspired DNN model, AlexNet\cite{krizhevsky2012imagenet}, to a similarity-controlled face simulus set.
-A standard AlexNet model is composed of five convolutional layers (feature extraction network) and three fully connected layers (classification network), which together reproduce the structure of the ventral stream of the visual pathway (\ref{sec:nn}).
-To investigate the selective response of individual units rather than the performance of a trained system, 
-we discard the classification layers and examined activity in the final layer (\ref{fig:emergence}b,top,Conv5) of the feature extraction network.
-To examine whether face tuning of units can arise even in completely untrained DNNs, 
-we devised an untrained AlexNet by randomly initializing the weights of filters in each convolutional layer (\ref{fig:emergence}b, bottom).
-% 控制输入信号的长度？
-For this, we used a standardized network initialization method~\cite{lecun2012efficient}, by which the weights of kernels in each convolutional layer were randomly drawn from a Gaussian distribution with parameters set to control the strength of the input signals across layers.
-The stimulus set consisted of grayscale images in six different categories (\ref{fig:emergence}c), specifically the face, a scrambled face, and four non-face objects, as previously done in monkey experiments~\cite{stigliani2015temporal}.
-The images in each class were designed to control the low-level features of the luminance, contrast, object size, and object location, and they have statistically comparable intra- and inter-class image levels of similarity.
-
-
-% 观察到的现象
-Surprisingly, we observed a group of face-selective units ($ n = 250 \pm 63 $ in 100 random networks, mean $ \pm $ s.d.) that show significantly higher response to face images than to non-face images emerging in the untrained networks (\ref{fig:emergence}d, $ P<0.001 $, two-sided rank-sum test).
-Here, a unit is defined as a unit component at each position of the channel in an activation map of the network.
-For example, there are 43,264 units (=13$\times$13$\times$256, $ N_{x-position} \times N_{y-position} \times N_{channel} $) in Conv5.
-We considered each unit (of the same filter) at different spatial locations as different ones, as the selectivity of units at different locations appears to be distinct despite the fact that they share the same filter.
-We also investigated the layer-specific emergence of face-selective units in untrained networks.
-We found that face-selective units are also observed in earlier layers, Conv3 to 5 but are scarcely found in Conv1 and 2 (\ref{fig:emergence}e, 
-Conv1: $ n=0.008 \pm0.002\% $, 
-Conv2: $ n=0.047 \pm 0.009\% $, 
-Conv3: $ n=0.491 \pm 0.089\% $, 
-Conv4: $ n=0.534 \pm 0.103\% $,
-Conv5: $ n=0.579 \pm 0.146\% $).
-We found that the number of face-selective units and the face-selectivity index (FSI) of each unit increased through the layer hierarchy (\ref{fig:emergence}e,f).
-Notably, the number of face-selective units did not show significant differences across the convolutional group or filters within each layer.
-This suggests that face-selective units are not dominantly generated by a particular filter.
-The number of observed face-selective units was highest in the mid- and high-level layers, similar to observations in the ventral visual pathway of monkeys~\cite{tsao2006cortical,livingstone2017development}.
-These results suggest that the development of face-selectivity requires a hierarchical structure of the network along with random feedforward weights, which enables multiple linear-nonlinear computations.
-We also found that the observed face-selective units in the untrained networks (Conv5) show a value of the averaged FSI~\cite{tsao2006cortical,freiwald2010functional} comparable to the index associated with monkey IT neurons (\ref{fig:emergence}f, $ n_{untrained} = 465 $, $ n_{monkey} = 158 $, NS, two-sided rank-sum test, $ P=7.69 \times 10 ^{-2} $, $ r_{rbc} = 9.25 \times 10^{-2} $, two-sided Kolmogorov-Smirnov test, $ P=2.49 \times 10^{-4}, d=2.32 \times 10^{-2} $)
-and a significantly higher value that those measured from a shuffled response (\ref{fig:emergence}f, $ n_{untrained} = 465 $, $ n_{shuffled} = 465 $, two-sided rank-sum test, $ P=1.49 \times 10^{-25}, r_{rbc} = 5.09 \times 10^{-1} $) for various definitions of the FSI~\cite{tsao2006cortical,aparicio2016neurophysiological,duyck2021color}.
-These results suggest that face-selective units, highly tuned to the face as observed in the brain, can emerge in DNNs even in the complete absence of learning.
-
-
-One possible scenario for the emergence of such face-selectivity in random networks is that the observed face-selective units are simply sensitive for local face parts common to facial images.
-To investigate this possibility, we measured the responses of the face-selective units to a local feature of the face using two types of control images in which global face features are disrupted but local face features are preserved.
-These were (1) scrambled faces, in which small patches of the local face components were spatially scrambled, and (2) texform face~\cite{long2018mid}, in which global face features are disrupted but the statistics of the local face texture is preserved (\ref{fig:emergence}g,left).
-We confirmed that face-selective units show significantly higher responses to the original face images compared to the corresponding control images (\ref{fig:emergence}g, right; 
-Face vs. Scrambled face, $ n=200 $, one-side rank-sum test, $ P=1.71 \times 10^{-52} $, $ r_{rbc}=7.69 \times 10^{-1} $;
-Face vs. Texform face, $ n=100 $, one-sided rank-sum test, $ P=4.12\times10^{-30} $, $ r_{rbc}=6.56\times 10^{-1} $).
-In addition, the responses of face units to these control images were not greater than those to other non-face images, implying that face-selective units are selective to the global context of faces instead of the local components (\ref{fig:emergence}g, right; Scrambled face vs. Non-face, $ n=200 $, one-sided Kolmogorov-Smirnov test, $ P=8.31 \times 10^{-1} $, $ d=3.00 \times 10^{-3} $; 
-Texform face vs. Non-face, $ n=100 $, one-sided rank-sum test, NS, $ P=9.40 \times 10^{-1} $, $ r_{rbc}=4.51 \times 10^{-2} $, $ d=1.84 \times 10^{-2} $).
-These results suggest that the observed face units in the untrained network are not particularly selective to local face parts, but are instead selective to a whole face.
-
-
-% h
-Next, we investigated the responses of face-selective units to four different novel stimulus sets that were not used to find face-selective units.
-These were
-(1) 50 face images from our original data set, not used for finding the face-selective units;
-(2) 15 face image used in Tsao et al.~\cite{tsao2006cortical,freiwald2010functional};
-(3) 50 face images used in Cao et al.~\cite{cao2018vggface2};
-and (4) 50 face images artificially generated by the FaceGen simulator (singular inversions) in color and grayscale (\ref{fig:emergence}h).
-We found that face-selective units in the untrained network show significantly higher responses to novel face images compared to the responses to non-face under all conditions (\ref{fig:emergence}h, Novel face vs. Non-face images, one-sided rank-sum test, $ P \leq 1.47 \times 10^{-11} $, $ r_{rbc} \geq 4.54 \times 10^{-1}$).
-These results suggests that the observed face-selectivity in an untrained network defined by one specific dataset can be generalized to other novel sets of faces.
-
-
-% figure i, j
-To confirm that the emergence of face-selective units is not due to the specific initial parameter set but is rather generally observed in an untrained network,
-we varied the width of the weight distribution for random network initialization (Gaussian and uniform) from 5 to 200\% of the original standard deviation of the standardized random initialization and examined if face-selective units consistently emerge (\ref{fig:emergence}i,j).
-We found that face-selective units consistently arise in the untrained networks across the variation of the parameter.
-The number (\ref{fig:emergence}i) and selectivity index (\ref{fig:emergence}j) of observed face units were largely unchanged across a wide range of weight variations and across the wide variation in the width of the weight distribution.
-This implies that the emergence of face-selective units in untrained networks is highly robust to variations of the wiring strength.
+% confocal fluorescence microscopy: 共焦 荧光 显微镜检查
+% TODO: 用什么设备来捕获人体的高精度图像
+We used confocal fluorescence microscopy to capture high-resolution images of the entire adult male human body (Fig.~\ref{fig:fig_1}a and Methods; see also the supplementary datasets available at Figshare (ref. 20)). 
+% 识别关节支点
+Chitin staining facilitated segmentation of body structures and identification of joint pivot points (Fig.~\ref{fig:fig_1}b). 
+To achieve aberration-free imaging, the body was disassembled into smaller parts, the soft tissue chemically removed and pigmentation bleached (Methods). 
+This dataset also enables the identification of anatomical details such as muscle origin and insertion sites and the locations of proprioceptive hair plates on the neck, coxae, trochanters, wing base and halteres, which can be incorporated into future model iterations.
 
 % 激活
 % 在未训练的网络中有 类别 选择性偏好特征
@@ -571,7 +473,7 @@ We additionally find that geometric eigenmodes show stronger out-of-sample gener
 
 
 \subsubsection{Running}
-
+% 肌肉驱动的人类跑步模拟：https://simtk.org/projects/runningsim/
 
 Reconstructions of both spontaneous and task-evoked data with geometric eigenmodes show that the spatial organization of brain activity is dominated by patterns with spatial wavelengths of about 40 mm or longer (Fig.~\ref{fig:1}d–f). 
 This result counters classical approaches to analysis of neuroimaging data, in which stimulus-evoked activations are mapped by thresholding statistical maps to identify focal, isolated areas of heightened activity. 
@@ -855,21 +757,45 @@ This strong relationship is striking given that the functional gradients are gen
 
 \section{Method} \label{sec:method}
 
-% 使用贝叶斯优化或神经架构搜索找类别选择网络
-\subsection{Neural architecture search}
+% TODO 人体没有解剖样本
+% Z-anatomy：人体解剖学的开放三维图谱：https://simtk.org/projects/z-anatomy
+% https://www.z-anatomy.com/
+% 人体的 Blender 解剖模型 https://www.blenderkit.com/?query=category_subtree:anatomy
+% 3D人体解剖图谱: https://sketchfab.com/Z-Anatomy
+% 人体解剖三维模型：https://www.cgtrader.com/3d-models/human-anatomy
+\subsection{Preparation of anatomical samples}
 
-\subsection{Derivation of cortical geometric eigenmodes} \label{sec:derivation}
+% 使用酒精洗，并解剖
+The five-to-six-day-old flies (w1118;+;+, backcrossed to M. Heisenberg's CantonS for ten generations) were anaesthetized on ice, briefly washed with ethanol and dissected under PBS-T (PBS+ 0.1\% Triton X-100).
+% 识别之间的距离
+Disassembling the fly into manageable elements allowed us to use high-magnification, high-numerical aperture (NA) objectives that have—in relation to the size of a fly’s body—short working distances, but have the benefit of higher axial resolution than the lower-magnification and lower-NA objectives. 
+Heads, wings, thoraces with abdomens, fore legs, midlegs and hind legs were transferred to individual tubes.
+All body parts except the wings 
+were incubated with 0.25 mg ml$ ^-1 $ trypsin in PBS-T for 48 h at 37 C to remove the soft tissues.
+The cuticle was then bleached in 20\% H$ _2 $O$ _2 $ for 24h, and the exoskeleton and tendons were stained overnight with Congo Red (0.5 mg ml$ _1 $), Sigma-Aldrich, C676-25G), a bright and comparatively photostable chitin-binding dye that stains both soft, membranous and hard, sclerotized cuticle.
+It also shows affinity to tendons and fine tendrils, which is very convenient for identifying muscles' origin and insertion sites, even in the absence of soft tissues.
+% 识别本体感受的发板
+The dataset also enables the identification of locations of the proprioceptive hair plates of the neck, coxae, trochanters, wing base and halteres-information that can be incorporated into future versions of the model. 
+The samples were dehydrated in ethanol and mounted in methyl salicylate (Sigma-Aldrich, M6752), which has a refractive index very close to that of glass, facilitating imaging throughout the relatively thick and bulky samples without degradation of the signal. 
+Serial optical sections were obtained on a Zeiss 880 confocal microscope at 2 $ \mu $m with a Plan-Apochromat 10×/0.45 NA objective, 1-$ \mu $m intervals with a LD-LCI 25$ \times $ / 0.8 NA objective or 0.3 $ \mu $m with a Plan-Apochromat 40×/1.3 NA objective. The 560-nm laser line was used to excite Congo Red.
 
 
-\begin{equation}\label{eq:surface_curvature}
-	\Delta:=\frac{1}{W} \sum_{i,j} \frac{\partial}{\partial x_i} (g^{ij} W \frac{\partial}{\partial x_j})
-\end{equation}
+
+\subsection{Blender model of body geometry} \label{sec:derivation}
 
 
-\begin{equation}
-	\text{wavelength} = \frac{2 \pi R_s}
-	{\sqrt{l(l+1)}},
-\end{equation}
+Three-dimensional meshes were extracted from the confocal stacks using Fiji's 3D viewer plug-in\cite{schindelin2012fiji} and imported into Blender\cite{community2018blender}.
+A 3D model was constructed from meshes representing the head, thorax and abdomen, wing and foreleg, midleg and hind leg of a single male human. 
+Appendage meshes were mirrored across the body's medial plane (Extended Data Fig. 1a). 
+This model was used as the reference for creating a simplified lower-polygon-count model, in which the total number of vertices was reduced from 22.6 million to 20,000 (Extended Data Fig.~\ref{fig:extended_fig_1}b).
+This simplified model consisted of 67 articulated body segments (Extended Data Fig.~\ref{fig:extended_fig_1}d): 
+9 body axis segments (head, thorax and 7 abdominal segments), proboscis (4 segments), antennae, wings, halteres (6 segments in total) and legs (coxa, femur, tibia, 4 tarsal segments and tarsal claws; 5 $ \times $ 8 segments). 
+The exact positions of joints, articulations and axes of joints' rotation were determined with high confidence from confocal microscopy data (Fig.~\ref{fig:extended_fig_1}b and Extended Data Fig.~\ref{fig:extended_fig_1}c). 
+The model was posed in the rest position and rigged in Blender by creating constraints defining movement of the body segments with respect to each other. 
+Each of the 67 body segments was assigned (parented to) a control element called 'bone', forming a hierarchical kinematic tree system resembling a skeleton called 'armature' (Extended Data Fig.~\ref{fig:extended_fig_1}d).
+
+
+
 
 
 \subsection{Modal decomposition of brain activity} \label{sec:modal_decomposition}
