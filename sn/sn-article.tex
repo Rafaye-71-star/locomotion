@@ -634,6 +634,17 @@ The model fly was rewarded for flying straight at a constant target velocity whi
 After training, it successfully learnt to use visual input to regulate altitude, achieving a median height error of 0.045 cm and a median speed error of 2.2 cm s$ ^{-1} $ after the initial acceleration phase (Fig.~\ref{fig:fig_4}e,f).
 
 
+\subsubsection{Trench task}
+
+% 飞过狭窄的战壕而不碰墙
+In a second task, we trained the model fly to navigate a narrow trench without colliding with its walls. 
+The virtual trench had a sinusoidal curving profile with a fixed width and depth (Fig. 4g). 
+The model fly was rewarded for maintaining a constant forward speed and altitude, whereas collisions resulted in early episode termination and loss of future rewards. 
+Successful navigation required the fly to use vision to detect and avoid the trench walls. 
+After training, the model fly reliably navigated the entire trench while maintaining the target height and speed, with a median height error of 0.032 cm and a median speed error of 0.16 cm s$ ^{-1} $ after the initial acceleration phase (Fig.~\ref{fig:fig_4}h,i).
+
+
+
 
 
 
@@ -811,20 +822,6 @@ We also used the fitted poses to verify and adjust the joint limits of the fly m
 \end{figure}
 
 
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.9\textwidth]{fig/extended_fig_9.pdf}
-	\caption{}
-	\label{fig:extended_fig_9}
-\end{figure}
-
-
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.9\textwidth]{fig/extended_fig_10.pdf}
-	\caption{}
-	\label{fig:extended_fig_10}
-\end{figure}
 
 
 
