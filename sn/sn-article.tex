@@ -601,249 +601,38 @@ For further details, see Methods and Extended Data Fig.~\ref{fig:extended_fig_3}
 %	} \label{fig:fig_5}
 %\end{figure}
 
-
-Geometric eigenmodes of the cortex are obtained by solving the eigenvalue problem of the LBO, which is also known as the Helmholtz equation (equation (\ref{eq:1})). 
-In physically continuous systems, the solutions of the Helmholtz equation correspond to the spatial projections of the solutions of a more general wave equation, such that the resulting eigenmodes inherently represent the vibrational patterns, or standing waves, of the system’s dynamics\cite{levy2006laplace}. 
-This equivalence implies that the superior efficacy of geometric eigenmodes in the reconstruction of diverse patterns of brain activity results from a fundamental role of wave dynamics in shaping these patterns, as predicted by NFT. 
-This prediction has been confirmed through models of EEG recordings21,35, but waves across the whole brain have only recently been observed in fMRI signals\cite{robinson2005multiscale,bolt2022parsimonious} and thus far lack a theoretical explanation. 
-Here we use NFT and geometric eigenmodes to show that wave dynamics can provide a unifying account of diverse empirical and physiological phenomena observed at scales accessible with fMRI.
-
-
-We model neural activity using an isotropic damped NFT wave equation without regeneration\cite{robinson1997propagation} (Fig.~\ref{fig:4}a~and NFT wave model in Methods~\ref{sec:NFT_model}). 
-Under this model, activity propagates between points on the neocortex through their white-matter connectivity with a strength that decays approximately exponentially with distance (Supplementary Fig.~\ref{fig:extended_fig_10}~and Supplementary Information~\ref{sec:NFT}~and~\ref{sec:NFT_wave}). 
-To simulate resting-state neural activity we use a white noise input to mimic unstructured stochastic fluctuations\cite{robinson2005multiscale} (Modelling resting-state dynamics in Methods~\ref{sec:modelling_resting}). 
-We compare the performance of this simple wave model with a biophysically based neural mass model (balanced excitation–inhibition (BEI) model) that has been used extensively to understand resting-state fMRI signals\cite{deco2014local} (Fig.~\ref{fig:4}a~and Neural mass model in Methods~\ref{sec:neural_mass}). 
-The neural mass model is closely aligned with the classical, connectome-centric view of brain function, representing dynamics as the result of interactions between neuronal populations in discrete anatomical regions, coupled according to an empirically measured connectome.
+Human are highly visual mammals, with large compound eyes and optic lobes comprising about a third of their brain. 
+To reflect this, we incorporated visual sensors into our model in addition to proprioceptive and vestibular sensors. 
+The eyes were modelled using MuJoCo camera sensors (Fig.~\ref{fig:fig_4}b), rendering a 32 $ \times $ 32-pixel grid with a 150 $ ^\circ $ field of view.
+This resolution approximates Drosophila vision, with an inter-ommatidial angle of 4.6° (ref.~\cite{zhao2025eye}45 and Fig.~\ref{fig:fig_4}c). 
+% 碰撞任务、战壕任务
+To demonstrate vision-based navigation, we trained the model fly on two tasks (a 'bumps' task and a 'trench' task) in which visual input was essential for successful flight. 
+Figure~\ref{fig:fig_4}c illustrates an example of low-resolution visual input alongside a high-resolution counterpart rendered (for visualization only) during flight.
 
 
-We first compare the efficacy of the two models in capturing distinct and commonly studied properties of spontaneous, task-free FC: namely, static pairwise FC (edge FC), static node-level average FC (node FC) and time-resolved dynamic properties of FC (FCD) (Modelling resting-state dynamics in Methods~\ref{sec:modelling_resting}). 
-Across all FC-based benchmark measures, the wave model shows comparable or superior performance in reconstruction of empirical data relative to the neural mass model (Fig.~\ref{fig:4}b). 
-The wave model also captures time-lagged properties\cite{raut2021global,bolt2022parsimonious,mitra2015lag} of empirical resting-state activity more accurately than the mass model (Extended Data Fig.~\ref{fig:extended_fig_9}~and Measuring time-lagged properties of resting-state dynamics in Methods~\ref{sec:dynamics_measurement}). 
-This strong performance of the wave model is remarkable given its relative simplicity: the wave model only requires the geometry of the cortex (that is, the surface mesh) as input and includes one fixed parameter and one free parameter ($ r_s $) for fitting to data (Extended Data Fig.~\ref{fig:extended_fig_10}) whereas the neural mass model requires a dMRI-derived interregional anatomical connectivity matrix and comprises 15 fixed parameters and four free parameters (Supplementary Information~\ref{sec:mass_optimization}). 
-These considerations indicate that wave dynamics offer a more accurate and parsimonious mechanistic account of macroscale, spontaneous cortical dynamics captured by fMRI.
-
-
-We next consider stimulus-evoked cortical activity in the wave model. 
-We analyse cortical responses to sensory stimulation of primary visual cortex (V1), because it elicits a well-defined hierarchy of regional cortical responses\cite{felleman1991distributed,chaudhuri2015large} (Modelling stimulus-evoked dynamics in Methods). 
-A 1 ms pulse input to V1 yields a propagating wave of activity that rapidly splits along the dorsal and ventral visual processing streams (Fig.~\ref{fig:4}c (arrows) and Supplementary Video 1), consistent with the mainstream understanding of hierarchical visual processing\cite{goodale1992separate}. 
-Remarkably, this result indicates that geometric constraints on travelling waves of evoked activity are sufficient for the segregation of the dorsal and ventral processing streams, which have traditionally been thought to be driven primarily by complex patterns of layer-specific connectivity\cite{felleman1991distributed,goodale1992separate,markov2014anatomy}. 
-Furthermore, the temporal profile of evoked responses across the visual system follows a well-defined timescale hierarchy, with higher-order association areas showing peak responses that are delayed and prolonged compared with lower-order visual areas (Fig.~\ref{fig:4}d). 
-These findings thus indicate that this hierarchical ordering, previously identified in experimental and modelling studies\cite{chaudhuri2015large,hasson2008hierarchy,murray2014hierarchy}, emerges naturally from waves of excitation propagating through the cortical medium. Critically, this hierarchical temporal ordering of areal responses strongly correlates with an independent anatomical measure of the cortical processing hierarchy based on non-invasive estimates of myeloarchitecture (T1-weighted (T1w) and T2-weighted (T2w) ratio)\cite{glasser2011mapping,gao2020neuronal}. 
-This correlation is particularly strong within the visual processing hierarchy ($ r = -0.72 $, one-sided spin-test $ P $ value ($P_{spin}$) = 0.003; Fig.~\ref{fig:4}e) but is also present when considering all cortical areas ($ r = -0.44 $, $ P_{spin} = 0.037 $; Supplementary Fig.~\ref{fig:supp_11}). 
-Together, our modelling results show how simple wave dynamics unfolding on the geometry of the cortex provide a unifying generative mechanism for capturing complex properties of spatiotemporal brain activity.
-
-
-\subsubsection{Geometry constrains subcortical activity}
-\begin{figure}[!htb]
-	\centering
-	\includegraphics[width=0.9\textwidth]{fig/fig_4.pdf}
-	\caption{
-	} \label{fig:4}
-\end{figure}
-
-
-Our analyses thus far have focused on the strong coupling of geometry and dynamics in the neocortex. 
-We next investigate this coupling in non-neocortical areas, focusing on the thalamus, striatum and hippocampus, because these structures have geometries easily captured using MRI data and their functional organization has been extensively studied\cite{tian2020topographic}.
-
-
-We first generalize our eigenmode analysis to three-dimensional (3D) volumes (Estimating the geometric eigenmodes of non-neocortical structures in Methods), yielding geometric eigenmodes that extend spatially through the three spatial dimensions of each structure. 
-Next, to fully capture the macroscale functional organization of these non-neocortical regions, we apply a widely used manifold learning procedure to voxel-wise FC data to obtain the key functional gradients in each structure\cite{haak2018connectopic} (Mapping the functional organization of non-neocortical structures in Methods). 
-These functional gradients describe the principal axes of spatial organization dictated by similarities in FC, thus representing the dominant modes of variation in functional organization, ordered according to the percentage of variance in FC similarity that they explain.
-
-
-The spatial profiles of the first three functional gradients of the thalamus, striatum and hippocampus (accounting for 24, 50 and 47\% of the variance in FC similarity, respectively) show a near-perfect match to the first three geometric eigenmodes (Fig.~\ref{fig:5}a–c; spatial correlations $ r\geq0.93 $). 
-This tight correspondence generalizes out to the first 20 modes and first 20 gradients of each structure (with the first 20 gradients respectively accounting for 49, 70 and 68\% of total variance in FC similarity), with all absolute spatial correlations $ |r| > 0.5 $, except for the 20th gradient and 20th mode in the striatum and hippocampus (Fig.~\ref{fig:5}d–f). 
-This strong relationship is striking given that the functional gradients are generated via a complex processing pipeline applied to fMRI-derived FC measures whereas the eigenmodes are derived simply from each structure’s geometry, independent of the functional data. These findings suggest that the functional organization of non-neocortical structures derives directly from their geometric eigenmodes.
-
-
-%\begin{figure}[!htb]
-%	\centering
-%	\includegraphics[width=0.9\textwidth]{fig/fig_5.pdf}
-%	\caption{
-%	} \label{fig:5}
-%\end{figure}
+We reused the general-purpose steerable low-level flight policy from the flight imitation task (Fig. 2) as part of a hierarchical vision-guided flight controller, trained by end-to-end RL (Fig.~\ref{fig:fig_4}a). 
+The controller consists of a fixed pretrained low-level policy (including the WPG) that directly controls wing motion and a high-level navigator policy that issues low-dimensional steering commands. 
+The high-level controller received a 62-dimensional proprioceptive and vestibular sensory signal, along with a low-dimensional visual feature representation extracted by a convolutional network (CNN) from the 6,144-dimensional visual input. 
+In addition, it received a 2D task-specific input: target flight height and speed (Supplementary Table 10). 
+The low-level controller received the 62-dimensional proprioceptive and vestibular signal, plus the high-level steering command, but not the visual or task-specific inputs. 
+As in the flight imitation task, the low-level controller produced a 12-dimensional control output, specifying wing torques, head and abdomen angles and WPG frequency (Supplementary Table 11).
 
 
 
-%\subsection{Detection of face images using the responses of face-selective units}
-%
-%\begin{figure}[!htb]
-%	\centering
-%	\includegraphics[width=0.9\textwidth]{fig/face_3.pdf}
-%	\caption{
-%		\textbf{Detection of face images using the response of face units in untrained networks.
-%		}
-%		(\textbf{a}) Design of the face detection task and SVM classifier using the responses of the untrained AlexNet.
-%		During this task, face or non-face images were randomly presented to the networks and the observed response of the final layer was use d to train a support vector machine (SVM) to classify whether the given image was a face or not.
-%		Among 60 images from each class (face, hand, horn, flower, chair, and scrambled face) that were not used for face unit selection, 40 images were randomly sampled for the training of the SVM, and the other 20 images were used for testing.
-%		The images shown are selected examples from the publicly available dataset~\cite{stigliani2015temporal}.
-%		The original images are available at [\url{http://vpnl.standford.edu/fLoc}].
-%		(\textbf{b}) Performance on the face detection task using a single unit randomly sampled from face-selective units ($ n = 465 $) and units without selective responses to any image classes ($ n = 7776 $).
-%		The channel level was measured by the shuffled responses of face-selective units in the untrained network.
-%		The error bar indicates the standard deviation of each unit.
-%		Each bar indicates the mean and the error bar indicates the standard deviation of performance of each unit.
-%		(\textbf{c}) Performance of the face detection task using face-selective units and non-selective units when varying the number of units from 1 to 456.
-%		The dashed line indicates the detection performance using all units in Conv5 ($ n=43,264 $).
-%		Each line indicates the mean and the shaded area indicates the standard deviation for 100 repeated trials of the random sampling of units.
-%		(\textbf{d}) Performance on the face detection task using face-selective units ($ n=465 $) and then using all units in Conv5 ($ n=43,264 $).
-%		Each bar indicates the mean and the error bar indicates the standard deviation for 100 repeated trials of the random sampling of units.
-%	} \label{fig:detection}
-%\end{figure}
-%
-%
-%We tested whether the selective responses of these face units could provide reliable information with which to detect between faces and non-face objects.
-%During this task, face ($ n=40 $) or non-face ($ n=40 $) images were randomly presented to the networks, and the observed response of the final layer was used to train a support vector machine (SVM) to classify whether the given image was a face or not (\ref{fig:detection}a).
-%First, we compared the detection performance of the SVM using a single unit randomly sampled from face-selective units and using units without selective responses to any image classes.
-%We confirmed that the SVM trained with a single face-selective unit shows noticeably higher performance that those measured from shuffled responses, whereas the SVM trained with units without selectivity does not 
-%(\ref{fig:detection}b,
-%Face unit vs. Response shuffled, 
-%$ n_\textrm{face} = 465 $,
-%two-sided rank-sum test,
-%$ P = 2.97 \times 10 ^{-121} $,
-%$ r_{rbc} = 7.68 \times 10^{-1} $;
-%Response shuffled vs. Non-selective unit, 
-%$ n_\textrm{non-selective} = 7,776 $,
-%two-sided rank-sum test, NS, 
-%$ P = 1.10 \times 10^{-1} $,
-%$ r_{rbc} = 4.52 \times 10^{-2} $,
-%two-sided Kolmogorov-Smirnov test,
-%$ P = 1.93 \times 10^{-1} $,
-%$ d = 2.12 \times 10^{-2} $
-%).
-%Then, extending the test to various numbers of units, we compared the detection performance of this SVM using face-selective units with the performance when using the same number of randomly sampled non-selective units.
-%We confirmed that the SVM trained with multiple face-selective units shows noticeably better performance that that trained with the same number of non-selective units, 
-%as the number of units used in each condition was varied from $ n=1 $ to 465 (total number of face units in untrained networks)
-%(\ref{fig:detection}c,
-%Face vs. Non-selective units, 
-%$ n_\textrm{trial} = 100 $,
-%two-sided rank-sum test, 
-%$ P \leq 1.45 \times 10^{-33} $,
-%$ r_{rbc} \geq 8.74 \times 10^{-1} $
-%).
-%We also found that the SVM using face units ($ n=465 $) nearly matches the performance of the SVM using all units in the final layer ($ n=43,264 $)
-%(\ref{fig:detection}d, 
-%Face vs. All units, 
-%$ n_\textrm{trial} = 100 $,
-%two-sided rank-sum test, NS, 
-%$ P = 1.90 \times 10^{-1} $,
-%$ r_{rbc} = 9.29 \times 10^{-2} $,
-%two-sided Kolmogorov-Smirnov test,
-%$ P = 1.90 \times 10^{-1} $,
-%$ d = 9.20 \times 10^{-3} $
-%).
-%Furthermore, we found that face units enable the networks to detect faces with various sizes, position, and rotations even when such image conditions were held constant when training the SVM classifier.
-%
-%
-%Notably, we also found that the SVM can successfully detect faces when it is trained with the responses of units selective to non-face classes, 
-%similar to the results in a previous experiment in human~\cite{haxby2001distributed},
-%whereas it failed to detect with units not selective to any of the classes.
-%To compare our results with the experiment condition of the previous human experiment~\cite{haxby2001distributed},
-%we first trained the SVM using the responses of four distinct populations:
-%(1) all of the units selective to each class (All-selective),
-%(2) units selective to non-face classes (Non-face-selective),
-%(3) face-selective units only (Face-selective),
-%and (4) units not selective to any of the classes (Non-selective).
-%As a result, we found that the SVM trained with non-face-selective units showed a performance comparable with the results of Haxby et al.~\cite{haxby2001distributed}.
-%Interestingly, the performance was also comparable with those with all-selective units and those with face-selective units only,
-%similar to the results in a previous experiment in human~\cite{haxby2001distributed}.
-%This result is understandable considering that there are only five image classes;
-%thus, even non-face-selective units can provide information for discriminating face and non-face images by generating different levels of activities for each class.
-%Taken together, these results imply that the information provided by selective units that emerge in the untrained networks is sufficient to detect between faces and non-face objects.
-%
-%
-%%\subsection{The emergence of face-selectivity in trained DNNs}
-%
-%
-%\begin{figure}[!htb]
-%	\centering
-%	\includegraphics[width=1.0\textwidth]{fig/face_4.pdf}
-%	\caption{
-%		\textbf{Effect of training on face-selectivity in untrained networks.
-%		}
-%		(\textbf{a}) Three different datasets modified from publicly available ImageNet~\cite{ILSVRC15} were used for the training of the network for image classification: 
-%		(1) face-reduced ImageNet, 
-%		(2) original Imagenet, 
-%		and (3) ImageNet with added face images.
-%		For copyright reasons, the face image shown here is not the actual image used in the experiments.
-%		The original images are replaced with images with similar contents for display purposes.
-%		The original images are available at [\url{https://www.image-net.org/download}].
-%		Images shown are available at [\url{https://www.shutterstock.com},\url{http://vpnl.stanford.edu/fLoc/}~\cite{stigliani2015temporal}].
-%		(\textbf{b}) Face-selectivity index of face-selective units in untrained network and in networks trained with the three datasets ($ n_\textrm{Untrained} = 4,267 $, $ n_\textrm{Reduced} = 2,452 $, $ n_\textrm{Original} = 3,561 $, $ n_\textrm{Face} = 3,585 $).
-%		(\textbf{c}) The number of face-selective units in untrained networks and in networks trained with three datasets ($ n_\text{net} = 10 $).
-%		(\textbf{d}) Face detection performance of untrained networks and of networks trained with three different datasets ($ n_\textrm{trial} = 1,000 $).
-%		(\textbf{e}) The obtained preferred feature images (PFI), using reverse-correlation method of the face-selective unit on each network.
-%		All box plots indicate the inter-quartile range (IQR between Q1 and Q3) of the dataset,
-%		the horizontal line depicts the median and the whiskers correspond to the rest of the distribution (Q1-1.5*IQR, Q3+1.5*IQR).
-%	} \label{fig:effect}
-%\end{figure}
-%
-%
-%We tested a scenario in which our current model can corroborate the conflicting observations regarding the role of visual experience for the development of face-selectivity.
-%A previous report suggested that visual experience is necessary for the emergence of face-selectivity by showing that monkeys raised without exposure to faces lack face-selective domains~\cite{arcaro2017seeing}.
-%On the other hand, another recent study showed that the face-selective area develops robustly in congenitally blind humans, suggesting that visual experience is not necessary for face-selectivity~\cite{arcaro2017seeing}.
-%Regarding these conflicting results, we examined how face-selective units in untrained networks can be affected by training with visual inputs.
-%
-%
-%To investigate the effect of training on a face image set,
-%we prepared the following three different stimulus sets:
-%(1) face-reduced ImageNet: 500 classes including no recognizable face images were manually curated from the ILSVRC 2010 dataset according to a visual inspection by the authors,
-%(2) the original ImageNet, 
-%and (3) the original ImageNet with added face images used in the current study~\ref{fig:effect}a.
-%Then, the network was trained with each of these image sets.
-%First, we found that the FSI of the face-selective units was significantly decreased after being trained to the face-reduced image set 
-%(~\ref{fig:effect}b,
-%Untrained vs. Face-reduced,
-%$ n_\textrm{Untrained} = 4,267 $,
-%$ n_\textrm{Reduced} = 2,452 $,
-%two-sided rank-sum test,
-%$ P = 2.99 \times 10^{-28} $,
-%$ r_\textrm{rbc} = 6.76 \times 10^{-1} $
-%),
-%whereas it was increased after being trained to the face-including image sets 
-%(Untrained vs. Face-included,
-%$ n_\textrm{Face} =3585 $,
-%two-sided rank-sum test,
-%$ P = 1.21 \times 10^{-3} $,
-%$ r_{rbc} = 2.60 \times 10^{-1} $
-%).
-%Notable, the FSI was significantly decreased after being trained to the original ImageNet dataset that contains images of faces but has no group labeled as face
-%(~\ref{fig:effect}b, Untrained vs. Original, 
-%$ n_\textrm{Original} = 3,561 $,
-%two-sided rank-sum test,
-%$ P = 9.34 \times 10^{-45} $,
-%$ r_\textrm{rbc} = 8.15 \times 10^{-1} $
-%).
-%This suggests that the tuning of face-selective units could either be sharpened or weakened by training with distinct stimulus sets.
-%
-%% Fig.4 c
-%Next, we found that the number of face-selective units observed was greater in the network trained with face-including image set compared to that trained to face-reduced images 
-%(\ref{fig:effect}c, Untrained vs. Trained,
-%$ n_\textrm{Net} = 10 $,
-%two-sided rank-sum test,
-%$ P \leq 1.40 \times 10 ^{-3} $,
-%$ r_\textrm{rbc} \geq 5.72 \times 10^{-1} $
-%).
-%Interesting, however, we found that the number of face-selective units, when trained to face-including images, appeared to be smaller than that of untrained networks.
-%These results imply that the training process of the network to face-including images selectively sharpens the tuning of face units so that the selectivity of strongly tuned units is sharpened while the weakly tuned units are pruned.
-%In this condition, the face detection performance of the networks would improve in face-trained networks even if the number of face units decreased compared to the initial, untrained condition.
-%To validate this scenario, we trained the SVM using the response of face-selective units for a face detection task in an untrained network and in the three networks trained to each type of data set.
-%As predicted, we found that the face detection performance was significantly increased in the networks trained to the face-including image set compared to that of the untrained network
-%(~\ref{fig:effect}d, Untrained vs. Face included, 
-%$ n_\textrm{trial} = 1000 $,
-%two-sided rank-sum test,
-%$ P = 1.04 \times 10^{-3} $,
-%$ r_\textrm{rbc} = 2.60 \times 10^{-1} $
-%),
-%whereas the face detection performance of the network trained to the face-reduced image set was significantly decreased compared to the untrained network
-%(~\ref{fig:effect}, Untrained vs. Face-reduced,
-%$ n_\textrm{trial} = 1,000 $,
-%two-sided rank-sum test,
-%$ P = 1.06 \times 10^{-22} $,
-%$ r_\textrm{rbc} = 6.42 \times 10^{-1} $
-%).
-%Furthermore, we found that the PFI of the face-selective unit shows a clear face configuration in the network trained to face-including natural images,
-%whereas the face configuration is disrupted in network trained to face-reduced dataset (\ref{fig:effect}e).
-%This result is consistent with previous observation of decreased face-selectivity in face-deprived monkeys~\cite{arcaro2017seeing}.
+To preserve learnt flight dynamics, the low-level controller's weights were frozen while the CNN and high-level MLP were jointly trained to maximize task reward. 
+In both tasks, terrain conditions, as well as target height and speed, were randomized in each training and test episode (Supplementary Table 12). 
+Contact with terrain resulted in early episode termination (failure). 
+The model fly started from a speed of zero, requiring it to accelerate to the target speed at the beginning of each trial. 
+Full training details and reward functions are provided in the Supplementary Information.
+
+
+\subsubsection{Bumps task}
+
+Fruit flies use visual cues to estimate altitude, which allows them to maintain a stable height over uneven terrain\cite{straw2010visual}. 
+To model this visually guided altitude control, we created a virtual world with a randomly generated sinusoidal terrain profile. 
+The model fly was rewarded for flying straight at a constant target velocity while maintaining a stable altitude above the ground (Fig.~\ref{fig:fig_4}d). 
+After training, it successfully learnt to use visual input to regulate altitude, achieving a median height error of 0.045 cm and a median speed error of 2.2 cm s$ ^{-1} $ after the initial acceleration phase (Fig.~\ref{fig:fig_4}e,f).
+
 
 
 
