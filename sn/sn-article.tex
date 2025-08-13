@@ -227,22 +227,28 @@ Through inverse kinematics, we further show that our model supports a broad beha
 		% 带腹部的胸部
 		Maximum intensity projections of confocal stacks showing head, thorax with abdomen, wings and legs. 
 		Scale bar, 1 mm.
-		% 共角的体积 confocal volume
+		% 共焦的体积 confocal volume
 		% 低多边形 网格
 		% 高多边形 网格
 		% 关节
 		% femur: 大腿骨
 		% tibia: 胫节
 		% tarsal: 跗骨
+		% TODO: 人腿的共焦体积的投影、
+		% 高多边形 体积的3D网格（离线仿真）
+		% 低多边形 体积的3D网格（实时仿真）https://zh.wikipedia.org/wiki/%E4%BD%8E%E5%A4%9A%E8%BE%B9%E5%BD%A2
 		\textbf{(b)} Left, a partial projection of the midleg confocal volume with the joints between the femur, tibia and tarsal segments indicated. 
 		Middle, a 3D mesh extracted from the volume. 
 		Right, a low-polygon leg model. 
 		Scale bar, 0.2 mm.
-		% 被分解的
+		% TODO: 被分解的人类模型（可视化）
 		\textbf{(c)} An exploded low-polygon human model (around 20,000 faces) showing all body segments. 
 		Scale bar, 1 mm.
+		% TODO: Blender 中的站立姿势
 		\textbf{(d)} The geometric human model assembled in Blender.
+		% TODO: 虚幻中的站立姿势
 		\textbf{(e)} The complete physics human model in Hutb simulator in the default stand pose.
+		% TODO: 虚幻中的跑步姿势
 		\textbf{(f)} Human model in a running pose with retracted legs.
 		% 透明视图
 		% DoFs: 自由度
@@ -274,6 +280,15 @@ We used confocal fluorescence microscopy to capture high-resolution images of th
 Chitin staining facilitated segmentation of body structures and identification of joint pivot points (Fig.~\ref{fig:fig_1}b). 
 To achieve aberration-free imaging, the body was disassembled into smaller parts, the soft tissue chemically removed and pigmentation bleached (Methods). 
 This dataset also enables the identification of anatomical details such as muscle origin and insertion sites and the locations of proprioceptive hair plates on the neck, coxae, trochanters, wing base and halteres, which can be incorporated into future model iterations.
+
+
+% Fiji(分割) -> Blender (减少网格数：文献中有102个自由度)
+We manually segmented 67 body components using Fiji\cite{schindelin2012fiji}, then simplified their meshes in Blender22 by reducing the vertex count to enable efficient computational modelling while preserving key morphological features (Fig.~\ref{fig:fig_1}b,c). 
+In Blender, we assembled the components into a full-body model and defined the kinematic tree by linking them at 66 identified joint locations (Fig.~\ref{fig:fig_1}b,d and Extended Data Fig.~\ref{fig:extended_fig_1}), yielding 102 degrees of freedom (DoFs) in accordance with the literature (Fig. 1g). 
+Biological joints were modelled as single hinge joints (1 DoF) or as combinations of two or three hinge joints (2 and 3 DoFs, respectively). 
+These joint models are simplified approximations, particularly for complex articulations such as the neck joint, wing hinge and thorax–coxa articulation\cite{melis2024machine,strausfeld1987neck,gorko2024motor}. 
+Joint angles corresponding to the resting pose (Fig.~\ref{fig:fig_1}d,e) and the running pose (Fig.~\ref{fig:fig_1}f) were estimated through visual inspection of videography.
+
 
 % 激活
 % 在未训练的网络中有 类别 选择性偏好特征
@@ -309,68 +324,15 @@ This dataset also enables the identification of anatomical details such as muscl
 \end{figure}
 
 
-Next, to characterize the feature-selective responses of these face-selective units qualitatively,
-we reconstructed preferred feature images (PFI) of individual units using a reverse-correlation (RC) method~\cite{bonin2011local} and a generative adversarial network algorithm (X-Dream)~\cite{ponce2019evolving} (see~\ref{sec:preferred}).
-In the RC analysis, we presented 2500 images of bright and dard 2D Gaussian filters at random positions as input stimuli to an untrained network (\ref{fig:preferred}).
-By adding stimuli weighted according to the corresponding neural response with 100 repeated iterations, we obtained the preferred feature images of the target units.
-In the X-Dream analysis, a deep generative adversarial neural network~\cite{dosovitskiy2016generating} was trained to ImageNet datasets to synthesize preferred feature images from the image codes scored by a genetic algorithm using the responses of units from repeated iterations. (\ref{fig:preferred}b).
-We found that the response of target units induced by the PFI was increased, being higher that those induced by face stimulus images, as the iteration number of the genetic algorithm exceeds a certain value 
-(\ref{fig:preferred}a, right, $ n=465 $, 
-RC PFI vs. face stimulus, two-sided rank-sum test, $ P=1.51 \times 10^{-6} $, $ r_{rbc} = 1.58 \times 10^{-1} $;
-RC PFI vs. non-face stimulus, two-sided rank-sum test, $ P=3.12 \times 10^{-2} $, $ r_{rbc} = 7.07 \times 10^{-2} $,
-\ref{fig:preferred}b, right, $ n=465 $, 
-X-Dream PFI vs. face stimulus, two-sided rank-sum test, $ P=1.92 \times 10^{-119} $, $ r_{rbc} = 7.63 \times 10^{-1} $;
-X-Dream PFI vs. non-face stimulus, two-sided rank-sum test, $ P = 2.68 \times 10^{-129} $, $ r_{rbc} = 7.94 \times 10^{-1} $
-).
-These results indicate that our PFI generation methods successfully find the most preferred input feature of face-selective units.
-As a result, using both methods, we obtained the PFI of face-selective units, units selective to non-face classes, and units without selective responses to any image classes (\ref{fig:preferred}c).
-We found that the PFI of the face-selective units presents distinguishable features from those of other objects.
-We observed that the PFIs of face-selective units represent face-like configurations, whereas the PFIs of units selective to non-face classes show noticeable configurations of each object class (i.e., flowers in an RC and X-Dream).
-
-
-% d
-To quantify the structural similarity of the PFIs to face images, we defined the face-configuration index as the averaged pixel-wise correlation between a PFI and the 200 face images used for face unit selection (\ref{fig:preferred}d).
-We estimated the face-configuration index of each PFI of face-selective and non-face-selective units generated by the RC method.
-We found that the estimated PFIs of face-selective units (with a visually observable face-like configuration) have a significantly higher average value of the index than that from the units selective to non-face objects (\ref{fig:preferred}e, 
-Face PFI vs. Non-face PFI, 
-$ n_\textrm{Face}    = 465 $,
-$ n_\textrm{Horn}    = 772 $,
-$ n_\textrm{Hand}    = 7   $,
-$ n_\textrm{Chair}   = 63  $,
-$ n_\textrm{Flower}  = 107 $,
-one-sided rank-sum test,
-$ P \leq 5.63 \times 10^{-4} $,
-$ r_{rbc} \geq 1.56 \times 10^{-1} $;
-\ref{fig:preferred}f, Face PFI vs. Non-face PFI,
-$ n_\textrm{Face}   = 465 $,
-$ n_\textrm{Chair}  = 63  $,
-$ n_\textrm{Horn}	= 773 $,
-$ n_\textrm{Hand}	= 7	  $,
-$ n_\textrm{Flower}	= 107 $,
-one-sided rank-sum test, 
-$ P \leq 1.93 \times 10^{-5} $,
-$ r_{rbc} \geq 2.35 \times 10^{-1} $
-).
-Notably, the average pairwise correlation estimated between each face stimulus image shows a significantly lower value of nearly zero, 
-implying that the observed index of face-selective units reflects structural similarity to the averaged (or a prototype, abstract) face image rather than similarly to particular face images accidentally observable.
-
-
-Next, we hypothesized that the observed face-selective units may encode invariant representations of the prototype face images, as some types of intrinsic are a basic property of CNNs.
-A number of previous studies suggested that various types of invariance (e.g., translation, scaling, and rotation) over a wide range of image transformations can be implemented in a CNN~\cite{lecun2004learning,kavukcuoglu2010learning,lecun2012learning,chidester2018rotation,srivastava2018effect}, mostly due to three key components--the convolutional layer, the pooling layer, and the hierarchical structure--in CNN models.
-Thus, to investigate whether the observed face-selective units show invariant representations of face images regardless of corresponding image condition, 
-we measured the response of face-selective units to face and non-face object images with various positions, sizes, and rotation angles.
-First, we observed that single face units show constant face tuning under a fairly wide range of size/potion/rotation variations and that range was comparable with those of face-selective neurons in IT~\cite{zoccolan2007trade}.
-Notably, we found that our model units also show the inversion effect observed in monkeys~\cite{tsao2006cortical,buiatti2019cortical,perrett1985visual}.
-We found that the response of face-selective units to inverted face images are significantly lower that those to upright faces.
-
-
-% 在随机网络中发现视角不变性的面部选择单元
-Similarly, we found viewpoint-invariant face-selective units and mirror-symmetric viewpoint-specific units in a random network.
-Interestingly, the number of viewpoint-invariant face-selective units increased along the network hierarchy, similar to previous observations in the brain~\cite{freiwald2010functional}.
-These results show that the observed invariances can arise from the hierarchical structure with convolutional filtering without the contribution of structured spatial filters.
-Notably, the current result also suggests a possible scenario through which to understand how viewpoint invariant selectivity can arise in infant animals.
-From the similarities between the CNN and the biological brain models, i.e., that the fundamentals of both CNNs and sensory cortices are based on the hierarchical feedforward structure and that the process of convolution via weight sharing in CNNs can be approximated by a biological model of periodic functional maps with hypercolumns in the visual cortex,
-our result may inspire insight into how innate invariance can arise in infant animals.
+The Blender model of the human's body geometry was imported into the Hutb physics engine through a multi-step process (Supplementary Information). 
+First, we generated primitive 'geom' representations of each body part (Fig.~\ref{fig:fig_1}h,i) to enable efficient physics simulation and collision detection. 
+Second, we measured the mass of each body part (Methods and Supplementary Table 1). 
+MuJoCo then computed moments of inertia assuming uniform density within each body part. 
+Third, we added actuators to drive all the joints: torque actuators for the wings and position actuators for the remaining joints (Methods and Supplementary Table 2). 
+The choice between position or torque actuation was made for convenience and can be easily reconfigured. 
+Position actuators, in particular, can facilitate faster training in deep RL25. 
+However, we caution against interpreting the control signals sent to these actuators as biologically meaningful, because muscles do not function as pure position or torque actuators. 
+Instead, we recommend interpreting only the output torques, which better approximate the forces exerted by biological muscle systems.
 
 
 % 几何模式限制神经网络激活
@@ -498,12 +460,12 @@ These results indicate that, on temporal and spatial scales accessible with fMRI
 \subsection{Hierarchical vision-guided walking}
 
 
-\begin{figure}[!htb]
-	\centering
-	\includegraphics[width=0.9\textwidth]{fig/fig_5.pdf}
-	\caption{
-	} \label{fig:fig_5}
-\end{figure}
+%\begin{figure}[!htb]
+%	\centering
+%	\includegraphics[width=0.9\textwidth]{fig/fig_5.pdf}
+%	\caption{
+%	} \label{fig:fig_5}
+%\end{figure}
 
 
 Geometric eigenmodes of the cortex are obtained by solving the eigenvalue problem of the LBO, which is also known as the Helmholtz equation (equation (\ref{eq:1})). 
@@ -560,12 +522,12 @@ This tight correspondence generalizes out to the first 20 modes and first 20 gra
 This strong relationship is striking given that the functional gradients are generated via a complex processing pipeline applied to fMRI-derived FC measures whereas the eigenmodes are derived simply from each structure’s geometry, independent of the functional data. These findings suggest that the functional organization of non-neocortical structures derives directly from their geometric eigenmodes.
 
 
-\begin{figure}[!htb]
-	\centering
-	\includegraphics[width=0.9\textwidth]{fig/fig_5.pdf}
-	\caption{
-	} \label{fig:5}
-\end{figure}
+%\begin{figure}[!htb]
+%	\centering
+%	\includegraphics[width=0.9\textwidth]{fig/fig_5.pdf}
+%	\caption{
+%	} \label{fig:5}
+%\end{figure}
 
 
 
@@ -758,6 +720,7 @@ This strong relationship is striking given that the functional gradients are gen
 \section{Method} \label{sec:method}
 
 % TODO 人体没有解剖样本
+% OpenSim -> https://github.com/MyoHub/myoconverter -> MuJoCo
 % Z-anatomy：人体解剖学的开放三维图谱：https://simtk.org/projects/z-anatomy
 % https://www.z-anatomy.com/
 % 人体的 Blender 解剖模型 https://www.blenderkit.com/?query=category_subtree:anatomy
@@ -798,7 +761,7 @@ Each of the 67 body segments was assigned (parented to) a control element called
 
 
 
-\subsection{PhysX model of body physics} \label{sec:modal_decomposition}
+\subsection{PhysX model of body physics} \label{sec:body_physics}
 
 
 The Blender model was then exported to Unreal Engine using the Blender-For-UnrealEngine-Addons (https://github.com/xavier150/Blender-For-UnrealEngine-Addons). 
@@ -850,311 +813,6 @@ We also used the fitted poses to verify and adjust the joint limits of the fly m
 
 
 
-\subsection{Cortical parcellations} \label{sec:cortical_parcellations}
-
-
-\subsection{Derivation of connectome eigenmodes} \label{sec:connectome_derivation}
-
-\begin{equation}\label{eq:connectome_eigenmodes}
-	L' \psi = - \lambda \psi,
-\end{equation}
-
-
-\begin{equation}\label{eq:unnormalized_Laplacian}
-	L = \frac{1}{2} [ (D-A_C) + (D-A_C)^T ],
-\end{equation}
-
-
-\subsection{Derivation of EDR eigenmodes} \label{sec:EDR_derivation}
-
-
-\subsection{Comparisons with statistical basis sets} \label{sec:sets_comparisons}
-
-
-\subsection{Modal power spectra of task-evoked activation maps} \label{sec:modal_power}
-
-
-\begin{equation}\label{eq:normalized_power}
-	P_j = \frac{|a_j|^2}{\sum_{j=1}^{N} |a_j|^2 }.
-\end{equation}
-
-
-\subsection{Contributions of long- and short-wavelength modes} \label{sec:wavelength_contributions}
-
-
-\subsection{NFT wave model} \label{sec:NFT_model}
-
-
-\begin{equation}\label{eq:NFT_wave_model}
-	[\frac{1}{\gamma_s^2} \frac{\partial ^2}{\partial t^2} + 
-	\frac{2}{\gamma_s} \frac{\partial}{\partial t} + 1 - r_s^2 \nabla^2] 
-	\phi(\textbf{r}, t) = Q(\textbf{r}, t),
-\end{equation}
-
-
-\subsection{Neural mass model} \label{sec:neural_mass} 
-
-
-\begin{equation}\label{eq:temporal_activity}
-	\frac{dS_i}{dt} = f(\boldsymbol{S}, \theta_i, C, G), 
-\end{equation}
-
-
-\begin{equation}\label{eq:synaptic_gating_E}
-	\frac{dS_i^{(E)}}{dt} = - \frac{S_i^{(E)}}{\tau_E} + (1-S_i^{(E)} \gamma r_i^(E) + \sigma \mu_i(t)),
-\end{equation}
-
-\begin{equation}\label{eq:synaptic_gating_I}
-	\frac{dS_i^{(I)}}{dt} = - \frac{S_i^{(I)}}{\tau_I} + r_i^{I} + \sigma \mu_i(t),
-\end{equation}
-
-\begin{equation}\label{eq:firing_rate_E}
-	r_i^{E} = H^{(E)} (I_i^{(E)}) = \frac{a_E I_i^{(E)} - b_E}{1 - exp[-d_e (a_E I_i^{(E)} - b_E)]},
-\end{equation}
-
-\begin{equation}\label{eq:firing_rate_I}
-	r_i^{(I)} = H^{I} (I_i^{I}) = \frac{a_I I_i^{(I)} - b_I}{1 - exp[-d_E (a_E I_i^{(E)}) - b_I]'},
-\end{equation}
-
-% Excitatory
-\begin{equation}\label{eq:input_current_E}
-	I_i^{(E)}(t) = I^{ext} + W_E I_0 + w_{EE} S_i^{(E)} (t) + G J \sum_j C_{ij} S_j^{(E)}(t) - w_{IE} S_i^{(I)} (t), 
-\end{equation}
-
-% Inhibition
-\begin{equation}\label{eq:input_current_I}
-	I_i^{I} (t) = W_I I_0 +
-	W_{EI} S_i^{(E)} (t) - 
-	S_i^{(I)} (t),
-\end{equation}
-
-
-\subsection{Haemodynamic model} \label{sec:haemodynamic_model}
-
-
-\begin{equation}\label{eq:vasodilatory_signal}
-	\frac{dz_i}{dt} = N_i (t) - 
-	\kappa z_i(t) - 
-	\gamma [f_i(t) - 1], 
-\end{equation}
-
-
-\begin{equation}\label{eq:blood_inflow}
-	\frac{df_i}{dt} = z_i(t),
-\end{equation}
-
-
-\begin{equation}\label{eq:blood_volume}
-	\frac{dv_i}{d_t} = \frac{1}{\tau} [f_i(t) - v_i^{1/\alpha} (t)],
-\end{equation}
-
-
-\begin{equation}\label{eq:deoxyhaemoglobin}
-	\frac{dq_i}{dt} = \frac{1}{\tau}
-	\{
-	\frac{f_i(t)}{\rho}
-	[1 - (1-\rho)^{1/f_i(t)}]
-	- v_i^{1/\alpha - 1} (t)
-	\},
-\end{equation}
-
-
-\begin{equation}\label{eq:BOLD_signal}
-	\frac{dy_i}{dt} = V_0
-	\{
-	k_1 [1 - q_i(t)] +
-	k_2 [1 - \frac{q_i(t)}{v_i(t)}] + 
-	k_3 [1 - v_i(t)]
-	\},
-\end{equation}
-
-
-\subsection{Modelling resting-state dynamics} \label{sec:modelling_resting}
-
-
-\begin{equation}\label{eq:synchrony}
-	\Delta(i,j,t) = cos [\theta_i (t) - \theta_j (t)].
-\end{equation}
-
-
-\begin{equation}\label{eq:synchrony_similarity}
-	\phi_{uv} = \frac{1}{d_u d_v} 
-	\sum_{i>j} \Delta(i,j,\tau_u) \Delta(i,j,\tau_v),
-\end{equation}
-
-\begin{equation}\label{key}
-	d_x = \sqrt{\sum_{i>j}
-		[
-		\Delta(i,j,\tau_x)
-		]^2
-	}.
-\end{equation}
-
-
-\subsection{Measurement of time-lagged properties of resting-state dynamics} \label{sec:dynamics_measurement}
-
-
-
-
-
-
-\subsection{Modelling stimulus-evoked dynamics} \label{sec:modelling_stimulus}
-
-
-\subsection{Estimation of the geometric eigenmodes of non-neocortical structures} \label{sec:geometric_estimation}
-
-
-\subsection{Mapping the functional organization of non-neocortical structures} \label{sec:functional_mapping}
-
-
-\subsection{Neural network model} \label{sec:nn}
-We used AlexNet~\cite{krizhevsky2012imagenet} as a representative model of the convolutional neural network.
-This network consists of feature extraction and classification networks.
-The feature extraction network consists of five convolutional layers with rectified linear unit (ReLU) activation and a pooling layer, while the classification network has three fully connected layers.
-The detailed parameters of the architecture were sourced from Krizhevsky et al.~\cite{krizhevsky2012imagenet}, which provided the models for V4 and IT~\cite{cadieu2014deep}.
-
-
-To determine the origin of face-selective neurons, the randomly initialized networks were examined.
-% 节点数目的开方为标准差
-For the untrained AlexNet, the weights and biases of each convolutional layer were initialized from a Gaussian distribution or a uniform distribution with a zero mean and the standard deviation set to the square root of one over the number of units in the previous layer.
-This was done to balance the strength of the input signals across the layers, 
-and this approach follows previous research on efficient network initialization processes~\cite{lecun2002efficient}.
-
-
-\subsection{Stimulus dataset}
-Seven types of visual stimuli from six datasets were used.
-(1) A low-level feature-controlled stimulus set~\cite{stigliani2015temporal} was selected and modified from publicly available images in human fMRI study~\cite{stigliani2015temporal} (\url{http://vpnl.stanford.edu/fLoc}) 
-and was used to find units that responded selectively to face images.
-Specifically, 260 images were prepared for each class (face, hand, horn, flower, chair, and scrambled face).
-Then, 200 images were randomly sampled from each class and used for face unit selection.
-Among the 60 remaining images in each class, 40 images were used for the training of the SVM, 
-and the other 20 images used for testing.
-Each item was overlaid on a group of phase-scrambled background images.
-This was designed to reduce inter-class differences across various low-level properties,
-in this case, luminance, contrast, size, position, and the degree of intra-/inter-class image similarity.
-% 2
-To validate the face-selective response to novel face stimulus set, we used (2) 16 face images used in Tsao et al.~\cite{tsao2006cortical,freiwald2010functional} provide by D.Tsao group from personal communication,
-% 3
-(3) 50 face images from open access VGGFace2 dataset used in Cao et al.~\cite{cao2018vggface2} (\url{https://github.com/ox-vgg/vgg_face2});
-% 4
-(4) 50 face images artificially generated by the FaceGen simulator (singular inversions; FaceGen Modeller Pro) in color and grayscale (\url{https://facegen.com}).
-% 5
-(5) To investigate the invariance of face-selective units to face images of various sizes, position, and rotation angle of the faces and other objects in the similarity-controlled stimulus set~\cite{stigliani2015temporal}.
-% 6
-(6) Viewpoint dataset: This set was used to find units that invariantly responded to face images of different viewpoints.
-This dataset consists of five angle-based viewpoint classes ($ -90^\circ $, $ -45^\circ $, $ 0^\circ $, $ 45^\circ $, $ 90^\circ $) with 10 different faces obtained from the publicly available Point'04 dataset (\url{http://crowley-coutaz.fr/Head%20Pose%	20Image%20Database.html}) used in Gourier et al~\cite{gourier2004estimating}.
-% 7
-To investigate the possibility of units selective to various objects, we used a publicly available ImageNet dataset~\cite{russakovsky2015imagenet} (\url{https://www.image-net.org/download}).
-For copyright reasons, the images in ~\ref{fig:emergence}a, ~\ref{fig:effect}a, and ~\ref{fig:image_net}a,d are not the actual images used in our experiments.
-The original images are replaced with images with similar contents for display purposes.
-Alternative images used in this study are purchased from \url{https://www.shutterstock.com} with a standard image license, which includes rights to publish in e-publication and printed in physical form as part of a copy of magazines, newspapers, and books.
-For all datasets, the image size of the input to AlexNet was fixed at $ 227 \times 227 $ pixels.
-
-
-\subsection{Analysis of response of the network units}
-In our model, a unit refers to a unit component at each position of the channel in an activation map of the network.
-We defined this unit in a convolutional network as a simplified model of a biological unit (a single neuron or a group of neurons that generates a tuned activity), considering that the dynamics of a single neuron in biological brains can be estimated from its receptive filed, 
-which behaves as a spatiotemporal filter at a local cortical position retinotopically matching the external visual space.
-Based on a previous study~\cite{grossman2019convergent}, face-selective units were defined as units that had significantly higher mean responses to face images than to images in any non-face class ($ P \textless 0.001 $, two-sided rank-sum test).
-To estimate the normalized response, the responses to each unit was $ z $-scored using the average and the standard deviation of responses to stimulus images.
-To quantify the degree of tuning, an FSI of a single unit was defined as in previous experimental research~\cite{aparicio2016neurophysiological}
-\begin{equation}\label{eq:fsi}
-	FSI = \frac{(\overline{R}_\textrm{face} - \overline{R}_\textrm{non-face})}
-	{\sqrt{(\sigma^2_\textrm{face} + \sigma^2_\textrm{non-face}) / 2}}
-\end{equation}
-where $ \overline{R}_\textrm{face} $ is the average response to face images 
-and $ \overline{R}_\textrm{non-face} $ is the average response to all non-face images.
-An FSI of 0 indicates equal responses to face and non-face objects.
-
-
-Among the face-selective units found, a face viewpoint-invariant unit was defined as a unit for which the response was not significantly different (one-way ANOVA, $ P \textgreater 0.05 $, Bonferroni adjustment $ n = 5 $) among all viewpoint classes.
-Similar to the face-selective units, the viewpoint-specific units were determined by the mean response of the preferred viewpoint class being significantly higher than that for any other viewpoint (one-way ANOVA, $ P \textless 0.05 $, Bonferroni adjustment $ n = 5 $).
-We defined mirror-symmetric tuning as the condition that arises when a viewpoint-specific face-selective unit has a symmetric shape of the tuning curve (one-way ANOVA, $ P \textless 0.05 $, Bonferroni adjustment $ n = 5 $; i.e., a unit shows peak responses at $ -45^\circ $ and $ 45^\circ $ or $ -90^\circ $ and $ 90^\circ $).
-The invariance index of a single unit was defined as the inverse of the standard deviation of the average responses for images within each viewpoint class.
-The same analysis was also performed for the stimulus set that added the face class to ILSVRC2010.
-
-
-\subsection{Face vs. non-face detection task for the network}
-A face vs. non-face detection task was established to investigate whether face-selective units could perform basic face perception.
-To determine if this was possible, an SVM was trained with network responses to images and was then made to predict whether a class of unseen images was or was not a face.
-% 循环验证指以任何形式，回溯地选择数据的某个特征作为因变量进行分析，从而扭曲统计检验结果。
-% 循环验证有很多种形式，但本质上都包含先使用数据刻画（characterize）某需要被检验的变量，然后再对该批数据进行分析并进行统计推断，因此通常被称为“双重浸渍”（double dipping）。
-To avoid the double-dipping issue~\cite{kriegeskorte2009circular} we undertook the training and testing of the SVM using distinct sets of images, 
-where 260 images were prepared for each class, 
-and 200 image were then randomly sampled from those images and used for face unit selection.
-Among the 60 remaining images in each class, 40 images were used for the training of the SVM, 
-and the other 20 images were used for testing.
-The label of the training set was then changed to a binary class: face or non-face.
-For each trial, the SVM was trained with the relationship between the fifth layer's response to the training set and the new training label.
-After a training session, the model predicted the test label using the network response to the test set.
-Furthermore, to test whether the responses of face-selective units could detect faces varied in different ways, 
-we trained an SVM with network responses for center-view face images ($ N = 40 $) and non-face images $ N = 40 $.
-The model then predicted test labels using the responses of face-selective units to new test sets which consisted of a face and non-face images with different types of variation, in this case, different sizes, positions, and rotation angles.
-
-
-\subsection{Preferred input feature (receptive field) analysis} \label{sec:preferred}
-To visualize the preferred input feature of target units, the receptive field was estimated by the RC method~\cite{bonin2011local} with multiple iterations.
-The initial stimulus set was generated as 2500 random local 2D Gaussian filters.
-Such stimuli were weighted by the corresponding responses and were added as an initial preferred feature image.
-Then, to detect the preferred feature more accurately, we calculated the PFI iteratively;
-the PFI of the next iteration was calculated by a new stimulus set consisting of the summation of the current PFI and 2500 random local 2D Gaussian filters (\ref{fig:preferred}a).
-We repeated 100 iterations and obtained the final PFI.
-
-
-% b
-To obtain the preferred feature images of target units, we used a generative adversarial network (X-Dream)~\cite{dosovitskiy2016generating}.
-X-Dream consists of a generative adversarial network (GAN) with a genetic algorithm as the optimization algorithm of the responses.
-We used a GAN~\cite{dosovitskiy2016generating} pre-trained with natural images (ILSVRC 2012).
-The response optimization algorithm~\cite{ponce2019evolving} finds the optimal image code that maximizes the response of the target unit.
-In this algorithm, a single image code consists of 1000 initial values randomly sampled from a zero-centered Gaussian distribution with a standard deviation of 0.5.
-In each iteration, 50 images codes are randomly generated, and the five image codes with the highest optimization score are preserved for the next iteration while the other 45 codes are recombined through a pairwise-randomization step before the next iteration.
-Then, individual values of an image code are randomly mutated with a probability of 0.01;
-i.e., each value is replaced with a random number drawn from a zero-centered Gaussian with a standard deviation of 0.5.
-The preferred feature image of a target unit is achieved after 100 iterations.
-
-
-
-\subsection{Trained network model}
-To investigate the effect of training on a face image set,
-we prepared the following three different stimulus sets:
-(1) face-reduced ImageNet: images with those including a face excluded (ILSVRC 2010; 500 classes),
-(2) the original ImageNet (1,000 classes), 
-and (3) the original ImageNet with added face images used in the current study (1,001 classes).
-The network was trained with each of these image sets using a stochastic gradient descent algorithm.
-Detailed training parameters were adapted from Krizhevsky et al., 2012:
-batch size = 128,
-momentum = 0.9,
-weight decay = 0.0005,
-training epoch = 90, 
-learning rate = 0.01,
-learning rate decay = 10 times for every 30 epochs.
-
-
-\subsection{Statistics}
-All sample sizes, exact $ P $ values, and statistical methods are indicated in the corresponding text, figure legends and tables.
-A rank-sum test was used for all analyses, 
-except for the number of face units across convolutional groups (Kolmogorov-Smirnov test),
-the face detection task (Kolmogorov-Smirnov test),
-the detection of viewpoint-invariant and -specific units (one-way ANOVA with Bonferroni adjustment)
-and a connectivity analysis (one-way ANOVA with Bonferroni adjustment).
-The devisor of all Bonferroni adjustments was five viewpoint group ($ n = 5 $).
-All statistical tests used to determine statistical significance were two-sided, except for the chance level of FSI (one-sided, ~\ref{fig:emergence}f),
-response to controlled face images and novel faces (\ref{fig:emergence}g,h),
-chance level of the face-configuration index (one-sided, \ref{fig:preferred}e,f),
-response to controlled gazania images (\ref{fig:image_net}b),
-intra-class image similarity (Supplementary Fig.S1g),
-the effective range of image correlation (Supplementary Fig.S5f),
-average weight between Conv4 and Conv5 (Supplementary Figs.S8c,d,and S9b)
-and the number of viewpoint invariant units (Supplementary Fig.S9h).
-All error bars and shaded areas indicate the standard deviation, 
-except for response to PFIs (standard error; \ref{fig:preferred}a,b),
-connectivity analysis (standard error; Supplementary Figs.S8c,d,S9b,d,f,h),
-viewpoint invariance index (standard error; Supplementary Fig.S8g).
-Box plots in ~\ref{fig:emergence}e-h, ~\ref{fig:preferred}e,f, ~\ref{fig:effect}b-d and ~\ref{fig:image_net}b, and in Supplementary Figs. 1d-h, 2h, 3, 7b, c, and 9d, h indicate the inter-quartile range (IQR between Q1 and Q3) of the dataset, 
-the horizontal line depicts the median and the whiskers correspond to the rest of the distribution (Q1-1.5*IQR, Q3+1.5*IQR).
-In Supplementary Table 2 and 3, we included the effect size alongside all $ P $ values for each statistical test:
-the rank-biserial correlation value~\cite{cureton1956rank} for the rank-sum test, 
-and Cohen's~\cite{tsao2008comparing} for ANOVA test, the dissimilarity value~\cite{vermeesch2013multi} for Kolmogorov-Smirnov test, respectively.
 
 
 \subsection{Data availability} \label{sec:data_availability}
@@ -1313,32 +971,57 @@ BMC journals: \url{https://www.biomedcentral.com/getpublished/editorial-policies
 	
 \section{Supplementary information} \label{secInfo}
 
-\subsection{Neural field theory} \label{sec:NFT} 
+\subsection{Supplementary Video 1} \label{sec:NFT}
 
-\subsection{Human Connectome Project data} \label{sec:sup_2}
+% TODO 虚幻中的 3 个跑步视频
+Running imitation. 
+Examples of human model imitating real running behaviours: 
+% 1. 跟踪一个真实的 急速勒马 轨迹（折返跑）
+a saccade turning manoeuvre, 
+% 2. 躲避 动作 （跑圈？）
+an evasion manoeuvre, 
+% 3. 以恒定速度直线水平跑
+and straight horizontal running at constant speed (30 cm s$ ^{-1} $). 
+% 由策略网络 调制的 跑步模式发生器
+The leg motion is driven by wing-beat pattern generator modulated by policy network.
 
-\subsubsection{Task-evoked data} \label{sec:sup_2_1}
 
-\subsubsection{Task-free resting-state data} \label{sec:sup_2_2}
+\subsection{Supplementary Video 2} \label{sec:sup_2}
 
-\subsubsection{Connectome data} \label{sec:sup_2_3}
+% TODO: 走路行为模仿的 3 个示例（斜视图；俯视图、侧视图）
+Walking imitation. 
+Examples of human model imitating walking behaviours: 
+% 1. 跟踪一个真实的走路轨迹
+tracking a real walking trajectory with variable speed and direction, 
+% 2. 以固定的速度走直线
+walking straight at constant speed (2 cm $ ^{-1} $),
+% 3. 以固定的速度向右转
+and turning right at constant speed (2 cm s$ ^{-1} $) and yaw speed (130 $ ^{\circ} $ s $^{-1} $).
+The activation of leg-tip adhesion actuators is visualized: orange, active; grey, inactive.
 
 
-\subsection{Individual-specific cortical eigenmodes} \label{sec:individual_specific}
+\subsubsection{Supplementary Video 3} \label{sec:sup_2_1}
 
-\subsection{Effect of connectome thresholding on connectome eigenmodes} \label{sec:thresholding_effect}
+% TODO: 人体的共焦成像
+Confocal imaging of human body. 
+Visualization of the confocal z-stacks of a single male human body parts (head, thorax with abdomen, wings and legs).
 
-\subsection{Comparison between geometric eigenmodes and a functionally derived basis set} \label{sec:comparison_eigenmodes_derived}
 
-\subsection{Comparison between geometric eigenmodes and Fourier basis sets} \label{sec:comparison_fourier}
+\subsubsection{Supplementary Video 4} \label{sec:sup_2_2}
 
-\subsection{Modal power spectra of surrogate maps} \label{sec:modal_power_spectra}
+% TODO Blender 身体模型
+Blender body model. 
+Animation of the geometric human model and its individual body parts assembled in Blender.
 
-\subsection{NFT wave model} \label{sec:NFT_wave}
+\subsubsection{Supplementary Video 5} \label{sec:sup_2_3}
 
-\subsection{Optimization of the BEI neural mass model} \label{sec:mass_optimization}
+% TODO （起跑）驱动的 PhysX 身体模型
+PhysX body model with actuation. 
+Degrees of freedom of the physics human model in Hutb. 
+All degrees of freedom are actuated sequentially and traverse approximately 50\% of their corresponding joint ranges. 
+Collisions are disabled in this video.
 
-\subsection{Lag threads algorithm} \label{sec:lag_threads}
+
 
 
 \subsection{Supplementary table}\label{secA1}
@@ -1384,83 +1067,7 @@ BMC journals: \url{https://www.biomedcentral.com/getpublished/editorial-policies
 \end{figure}
 
 
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.85\textwidth]{fig/supp_2.pdf}
-	\caption{} \label{fig:supp_2}
-\end{figure}
 
-
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.85\textwidth]{fig/supp_3.pdf}
-	\caption{} \label{fig:supp_3}
-\end{figure}
-
-
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.85\textwidth]{fig/supp_4.pdf}
-	\caption{} \label{fig:supp_4}
-\end{figure}
-
-
-
-
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.85\textwidth]{fig/supp_5.pdf}
-	\caption{} \label{fig:supp_5}
-\end{figure}
-
-
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.85\textwidth]{fig/supp_6.pdf}
-	\caption{
-	} \label{fig:supp_6}
-\end{figure}
-
-
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=1.0\textwidth]{fig/supp_7.pdf}
-	\caption{
-	} \label{fig:supp_7}
-\end{figure}
-
-
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.85\textwidth]{fig/supp_8.pdf}
-	\caption{
-	} \label{fig:supp_8}
-\end{figure}
-
-
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.85\textwidth]{fig/supp_9.pdf}
-	\caption{
-	} \label{fig:supp_9}
-\end{figure}
-
-
-
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.85\textwidth]{fig/supp_10.pdf}
-	\caption{
-	} \label{fig:supp_10}
-\end{figure}
-
-
-\begin{figure}[!htb] 
-	\centering
-	\includegraphics[width=0.85\textwidth]{fig/supp_11.pdf}
-	\caption{
-	} \label{fig:supp_11}
-\end{figure}
 
 
 
