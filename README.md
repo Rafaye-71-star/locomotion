@@ -1,4 +1,4 @@
-# Pedestrian Navigation
+# Human Locomotion
 
 ## Configuration
 ```shell
