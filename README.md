@@ -131,5 +131,6 @@ Select `Initialize Environment`, make sure the start and end points are in the c
 
 * [Undergraduate thesis](https://github.com/OpenHUTB/sim/tree/master/pedestrian)
 * [flybody](https://github.com/TuragaLab/flybody)
+* [Existing locomotion task library based on MuJoCo](https://github.com/google-deepmind/dm_control/tree/main/dm_control/locomotion)
 
 
