@@ -375,81 +375,75 @@ The model is extendable, allowing for increased biological realism, such as musc
 % 几何模式限制神经网络激活
 \subsection{Modelling body–environment interactions}\label{subsec2}
 
-% 全局的波传到人脸识别区出现的模式响应 vs 人脸识别模式
-% 人脸识别区域几何模式（外形）来重建 人脸识别区域 的激活
-% 使用人脑的几何特征模式预测人工神经网络的激活
+
 \begin{figure}[!htb]
 	\centering
-	\includegraphics[width=0.9\textwidth]{fig/fig_3.pdf}
-	\caption{\textbf{Reconstruction of artificial neural network activity with geometric eigenmodes.}
-	\textbf{a}, Geometric eigenmodes are derived from the cortical surface mesh by solving the eigenvalue problem,$ \Delta \psi = -\lambda \psi $ (equation (\ref{eq:1})). 
-	The modes $ \psi_1, \psi_2, \psi_3, ... \psi_N $ are ordered from low to high spatial frequency (long to short spatial wavelengths). 
-	Negative, zero and positive values are coloured blue, white and red, respectively.
-	\textbf{b}, Modal decomposition of brain activity data. 
-	The example shows how a spatial map, $ y(r,t) $, at a given time, $ t $, can be decomposed as a sum of modes, $ \psi_j $, weighted by $a_j$.
-	\textbf{c}, Left, we reconstruct task-evoked data using spatial maps of activation for a diverse range of stimulus contrasts. 
-	Right, we reconstruct spontaneous activity by decomposing the spatial map at each time frame and generating a region-to-region FC matrix.
-	\textbf{d}, Reconstruction accuracy of seven key HCP task-contrast maps (Supplementary Information~\ref{sec:sup_2_1}) and restingstate FC as a function of the number of modes. 
-	Insets show cortical surface reconstructions, demonstrating the spatial scales relevant to the first 10, 100 and 200 modes corresponding to spatial wavelengths of approximately 120, 40 and 30 mm, respectively.
-	\textbf{e}, Group-averaged empirical task-activation maps and reconstructions (recon.) obtained using 10, 100 and 200 modes of the seven key HCP task contrasts. 
-	Black arrowheads indicate localized activation patterns that are more accurately reconstructed when using short-wavelength modes. 
-	\textbf{f}, Group-averaged empirical resting-state FC matrices and reconstructions using 10, 100 and 200 modes.
+	\includegraphics[width=1.0\textwidth]{fig/fig_3.pdf}
+	\caption{\textbf{Walking imitation.}
+	\textbf{a}, Overview of RL set-up. 
+	A single policy network is trained to imitate a dataset of 13,000 snippets (around 64 min in total) of freely walking real human. 
+	Full body movements are imitated, including tracking CoM position, body orientation and detailed leg movements.
+	\textbf{b}, % 模型和真实人体 身体重心和朝向的 对比
+	Percentiles of errors between the model and the corresponding real human's body CoM, and orientation for 3,200 test walking trajectories. 
+	\textbf{c}, % 步态的幻灯片
+	Filmstrip of the model walking straight at 2 cm s$ ^{-1} $ during one full leg cycle, with 8-ms steps between frames. 
+	\textbf{d}, % 4 种速度下的步态图
+	Gait diagrams of the fly model tracking synthetic fixed-speed straight-walking trajectories at four speeds. 
+	Black stripes indicate the swing phase of leg motion. 
+	For each speed, the average number of legs simultaneously in stance position (on the ground) is indicated. 
+	\textbf{e}, % 在站立时，同时使用腿的数目
+	Number of legs simultaneously in stance position averaged over walking snippet versus average walking speed in snippet.
+	Top, model tracking test set trajectories. 
+	Bottom, entire walking dataset. 
+	Inset, the distribution of average walking speeds per snippet in the dataset. 
+	\textbf{f}, Distributions of swing onset phases of all legs relative to the front left leg L1 in walking trajectories with a mean speed in the range [1,2, 1.7] cm s$ ^{-1} $.
+	Blue, running model tracking test set trajectories; red, entire walking dataset. 
+	Dashed lines indicate circular medians.
+	\textbf{g}, Learnt truning strategy.
+	Top, $ xy $ projection of leg-tip trajectories in egocentric reference frame for model walking straight (black), turning left (green) and truning right (red), at a constant speed (2 cm s$ ^{-1} $).
+	Leg-tip trajectories are shifted horizontally for clarity. 
+	Bottom, difference between (egocentric) left and right leg-tip swing length, averaged over all legs, at various walking speeds.
 	} \label{fig:fig_3}
 \end{figure}
 
-We first examine the degree to which geometric eigenmodes can explain diverse aspects of human neocortical activity. 
-To derive the eigenmodes, we use a mesh representation of a population-averaged template of the neocortical surface (Fig.~\ref{fig:1}a and Derivation of cortical geometric eigenmodes in Methods). 
-We then construct the Laplace– Beltrami operator (LBO) from this surface mesh, which captures local vertex-to-vertex spatial relations and curvature, and solve the eigenvalue problem,
-\begin{equation} \label{eq:1}
-	\nabla^2 \psi = \Delta\psi = -\lambda \psi,
-\end{equation}
-where $ \nabla $ is the gradient operator, $ \Delta $ is the LBO and $ \psi = \{\psi_1(r), \psi_2(r),...\} $ is the family of geometric eigenmodes with the corresponding family of eigenvalues $ \lambda = \{ \lambda_1, \lambda_2, ... \} $. 
-The eigenvalues are ordered sequentially according to the spatial frequency or wavelength of the spatial patterns of each mode (Fig.~\ref{fig:1}a~and Extended Data Fig.~\ref{fig:extended_fig_1}), such that $ \psi_1 $ is the mode with the longest wavelength. 
-The resulting eigenmodes are orthogonal, forming a complete basis set to decompose spatiotemporal dynamics unfolding on the cortex as a weighted sum of modes with varying wavelengths (Fig.~\ref{fig:1}b~and Modal decomposition of brain activity in Methods).
-Unless otherwise specified, we use $ N=200 $ modes throughtout this study.
+
+% MuJoCo 能够模拟：人体物体特性、环境交互（身体接触力、空气的流体交互、重力）
+Beyond simulating the human's body physics, the MuJoCo engine also models its interactions with the environment, including forces from physical contacts, fluid interactions (air) and gravity. 
+Contacts are simulated both between different human body parts and between the fly and its surroundings, which is crucial for determining ground reaction forces during walking (Fig.~\ref{fig:fig_1}j and Extended Data Fig.~\ref{fig:extended_fig_3}a).
 
 
-Using this decomposition we evaluate the accuracy of geometric eigenmodes in capturing both task-evoked and spontaneous brain activity (Fig.~\ref{fig:1}c) measured in 255 healthy individuals from the Human Connectome Project27 (HCP; HCP data in Methods and Supplementary Information 2). 
-For task-evoked activity, we map 47 task-based contrasts drawn from seven different tasks representing distinct evoked activation patterns. 
-We then reconstruct each individual’s activation map using an increasing number of modes up to a maximum of 200 (Fig.~\ref{fig:1}d). 
-For spontaneous, task-free (so-called resting-state) activity, we reconstruct the spatial map of activity at each time frame and then generate a region-to-region functional coupling (FC) matrix, describing correlations of activity among 180 discrete brain regions per hemisphere28. 
-To allow direct comparison between task-evoked and spontaneous recordings, we apply the same regional parcellation to the task-evoked data (Cortical parcellations in Methods). 
-Finally, we quantify reconstruction accuracy by calculating the correlation between empirical and reconstructed task-evoked activation maps and spontaneous FC matrices (Fig.~\ref{fig:1}d-f).
+Fluid interactions mainly account for forces generated by wing movement through air. 
+Accurately simulating fluid dynamics is computationally demanding, so we developed a phenomenological, stateless, quasi-steady-state approximation (Supplementary Information). 
+Our model extends a previous approach\cite{andersen2005analysis} to three dimensions, estimating the forces and torques on ellipsoid-shaped bodies moving through an incompressible quiescent fluid. 
+% added mass 附加质量
+% viscous drag、viscous resistance 粘性阻力：一种由于流体黏性而产生的阻力，通常出现在物体在流体中运动时。
+% Magnus effect 马格努斯效应（Magnus Effect）， 流体力学当中的现象，是一个在流体中转动的物体（如圆柱体）受到的力
+% Kutta lift https://baike.baidu.com/item/%E5%BA%93%E5%A1%94-%E8%8C%B9%E7%A7%91%E5%A4%AB%E6%96%AF%E5%9F%BA%E6%9D%A1%E4%BB%B6/5292204?fr=aladdin
+It approximates five fluid dynamics phenomena: added mass\cite{lamb1993hydrodynamics,tuckerman1925inertia}, viscous drag\cite{duan2015sphere}, viscous resistance\cite{stokes1851effect}, Magnus lift\cite{seifert2012review} and Kutta lift\cite{kutta1902lift}. 
+The resulting forces and torques are polynomial functions of fluid parameters (density and viscosity) and ellipsoid parameters (shape, size and linear and angular velocities), with a slender ellipsoid approximation for the wings (Fig.~\ref{fig:fig_1}i). 
+This fluid model is a MuJoCo feature designed for our study, but can be applied to other models.
 
 
-We observe that reconstruction accuracy increases with an increasing number of modes across all task contrasts and in the resting state, with $ r \ge 0.38 $ already achieved using just $ N=10 $ modes (Fig.~\ref{fig:1}d). 
-Large-scale modes are also differentially recruited across different tasks, suggesting that particular stimuli excite specific modes (Fig.~\ref{fig:1}e). 
-Improvements in reconstruction accuracy become slow after ten modes, reaching $ r \geq 0.80 $ at approximately $ N=100 $ modes, with only incremental increases in reconstruction accuracy beyond this point. 
-Beause the first 100 modes have wavelengths above around 40 mm (Supplementary Table~\ref{tab:spatial_wavelength}), 
-and the inclusion of shorter-wavelength modes only refines reconstruction of localized patterns (arrowheads in Fig.~\ref{fig:1}e), our findings suggest that the data are predominantly comprised of spatial patterns with long spatial wavelengths (see next section for a more detailed analysis).
+To accurately simulate running, our phenomenological model must approximate the total aerodynamic forces acting on real wings, regardless of the underlying mechanism. 
+This includes contributions from unmodelled phenomena, such as passive forces arising from wing flexibility\cite{sane2003aerodynamics}—which we do not explicitly simulate owing to our rigidbody approach—as well as complex fluid interactions such as turbulence and vortices. 
+To compensate for these omissions, we optimized the coefficients of the fluid force components until stable hovering was achieved (Methods).
 
 
-These results are consistent across all 47 HCP task contrasts (Supplementary Fig.~\ref{fig:supp_1}) and parcellations of varying resolutions (Supplementary Fig.~\ref{fig:supp_2}), but data parcellated at higher resolution require more modes to achieve high reconstruction accuracy due to the low-pass spatial filtering effect of coarser parcellations. 
-Our results are also not affected by the use of a population-averaged cortical surface template (rather than individual-specific surfaces) to derive the geometric eigenmodes (Supplementary Figs.~\ref{fig:supp_3}-\ref{fig:supp_5}~and Supplementary Information~\ref{sec:individual_specific}). 
-Together these findings indicate that cortical geometric eigenmodes form a compact representation that captures diverse aspects of task-evoked and spontaneous cortical activity. 
-Moreover, they show that such activity is dominated by long-wavelength, large-scale eigenmodes.
+
+In our model, Kutta lift (generated by fluid circulation around the wing) and viscous drag (opposing wing movement through the fluid) were the dominant forces (Fig.~\ref{fig:fig_2}c). 
+Notably, these coefficients did not require fine-tuning, as flight performance remained stable even with 20\% coefficient variation (Extended Data Fig.~\ref{fig:extended_fig_4}). 
+% 准稳态
+However, our quasi-steady-state approximation captures only the time-averaged effects of turbulence and other transient fluid phenomena, without explicitly modelling their dynamic contributions.
 
 
-We next test the hypothesis that geometric eigenmodes provide a more parsimonious and fundamental description of dynamics than eigenmodes derived from a graph-based connectome approximation. 
-To this end we compare the reconstruction accuracy of geometric eigenmodes against three alternative connectome-derived eigenmode basis sets (see Fig.~\ref{fig:2}a~for a schematic). 
-The first basis set is derived empirically from a connectome mapped with dMRI tractography at vertex resolution and thresholded to obtain a connection density of  0.10\%, as done previously29 (Derivation of connectome eigenmodes in Methods). 
-The second basis set is derived from a connectome constructed synthetically according to a homogeneous stochastic wiring process governed by an exponential distance-dependent connection probability to mimic simple, EDR-like connectivity (Derivation of EDR eigenmodes in Methods). 
-Because the connection densities of empirical and EDR connectomes differed, we evaluated a third basis set derived from the empirical connectome thresholded at 1.55\% to match the density of the EDR connectome. 
-The connectome, EDR and density-matched connectome eigenmodes described above are derived from the graph Laplacian (a discrete counterpart of the LBO) of their respective connectivity matrices (Fig.~\ref{fig:2}b~and Extended Data Fig.~\ref{fig:extended_fig_1}).
+Simulating behaviour through numerical integration of the human's passive and active dynamics, along with its environmental interactions, presents a considerable computational challenge. 
+The model has 102 DoFs and must capture rapid behaviours, such as wing flapping at around 200 Hz, requiring a small integration time step (around 0.1 ms).
+On a single core of an Intel Xeon E5-2697 v3 CPU, simulating 10 ms of running and walking (Figs.~\ref{fig:fig_2}a and \ref{fig:fig_3}a) took 421.5 ms and 58.65 ms, respectively-fast enough for RL of motor control.
+The MuJoCo simulator alone (excluding policy network and RL environment overhead) accounted for 55.5 ms and 23.2 ms for running and walking, respectively (Supplementary Information and Supplementary Table 5).
 
 
-To summarize, geometric eigenmodes account for the intrinsic curvature of the cortical surface and local vertex-to-vertex relations in the surface mesh; 
-connectome eigenmodes do not consider curvature but capture local spatial relations between mesh vertices, along with short- and long-range connections measured with dMRI; 
-and EDR eigenmodes account for the effect of a homogeneous, stochastic, distance-dependent connection rule without fully capturing the cortical geometry (Fig.~\ref{fig:2}a). 
-Contrasting these different basis sets thus allows us to disentangle the contributions to brain dynamics of cortical geometry from structural connectivity.
 
-
-Direct comparison of the reconstruction accuracy of these different basis sets shows that geometric eigenmodes consistently show the highest reconstruction accuracy across both spontaneous (Fig.~\ref{fig:2}c) and task-evoked (Fig.~\ref{fig:2}d) data. 
-EDR eigenmodes perform nearly as well as geometric eigenmodes whereas connectome eigenmodes are the least accurate. 
-This finding holds true regardless of the parcellation used (Extended Data Figs.~\ref{fig:extended_fig_2}~and~\ref{fig:extended_fig_3}), the specific connection density used to generate the connectome eigenmodes (Supplementary Figs.~\ref{fig:extended_fig_6}~and~\ref{fig:extended_fig_7}~and Supplementary Information~\ref{sec:thresholding_effect}) and whether we generate the connectome using a discrete regional parcellation rather than at vertex resolution (Supplementary Fig.\ref{fig:extended_fig_8} and Supplementary Information~\ref{sec:thresholding_effect}). 
-We additionally find that geometric eigenmodes show stronger out-of-sample generalization than principal components of the functional data themselves (calculated via principal component analysis (PCA); Supplementary Fig.\ref{fig:supp_9}, Extended Data Fig.~\ref{fig:extended_fig_4} and Supplementary Information~\ref{sec:comparison_eigenmodes_derived}) and better performance than Fourier spatial basis sets (Extended Data Fig.\ref{fig:extended_fig_5}, Supplementary Information~\ref{sec:comparison_fourier}~and Comparisons with statistical basis sets in Methods~\ref{sec:sets_comparisons}).
-
-% 长波主导神经网络激活
+% 运动的模仿学习
 \subsection{Imitation learning of locomotion}
 
 \begin{figure}[!htb]
@@ -468,10 +462,88 @@ We additionally find that geometric eigenmodes show stronger out-of-sample gener
 	} \label{fig:fig_4}
 \end{figure}
 
-\subsubsection{Walking}
+
+% RL 来控制
+We used deep RL to train our human model to generate realistic locomotor behaviours.
+An artificial neural network served as the sensorimotor controller, processing sensory input and generating motor control signals in a closed loop. 
+At each time step, MuJoCo simulated sensory signals, which were fed into the neural network. 
+The network then computed actuator control signals, which MuJoCo used to simulate the resulting forces on the body.
+
+
+
+To generate realistic locomotion, we used imitation learning\cite{peng2018deepmimic,hasenclever2020comic}, a data-driven approach that trains neural controllers to replicate observed behaviours. 
+Specifically, we trained the network to match the trajectories of the real human's centre of mass (CoM) and body segments during free locomotion, as measured from video. 
+To ensure generalization beyond the training trajectories, we developed steerable low-level controllers\cite{merel2019hierarchical}. 
+% 网络替代了 腹侧神经索
+These networks, although not intended as exact models of the ventral nerve cord, perform an analogous role by converting high-level descending commands into fine-grained motor control signals. 
+In our model, the high-level commands specify the desired change in the human's CoM position and orientation (6 DoFs) at each time step, whereas the low-level motor control signals drive the actuators.
+
+
+% 训练跑步和步行控制器网络
+We trained two steerable neural network controllers-one for running (Fig.~\ref{fig:fig_2}) and one for walking (Fig.~\ref{fig:fig_3}). 
+Using video-derived trajectories of real flies (Methods), we set the CoM trajectory as the high-level steering command and designed a reward function that incentivized the model to match both the CoM trajectory and the body part positions at each time step. 
+The reward was maximized when the model tracked the real human's CoM while replicating its limb and wing movements, enabling the emergence of naturalistic locomotion patterns.
+
+
+% MLP作为结构，如何训练
+The controllers were feedforward multilayer perceptrons (MLPs) that received egocentric vestibular and proprioceptive signals in addition to the high-level steering commands. 
+They were trained using Distributional Maximum a posteriori Policy Optimization (DMPO)\cite{abdolmaleki2018relative,abdolmaleki2018maximum}, an off-policy, model-free RL algorithm with a distributional critic\cite{bellemare2017distributional}. 
+% 观察 -> (策略网络) -> 控制信号
+% 评价网络 预测 期望的累积奖励
+This actor–critic algorithm optimizes two networks: a policy network that maps sensory observations to control signals and a critic network that predicts expected cumulative rewards. 
+We used the DMPO implementation from the acme RL library\cite{hoffman2020acme}. 
+Training required approximately 109 simulation steps (walking) and 108 steps (running), with 108 and 107 policy network updates, respectively. 
+To reduce training time from weeks to days or hours, we developed a multi-CPU and GPU parallelization scheme\cite{horgan2018distributed} using Ray\cite{moritz2018ray}, a general-purpose distributed computing framework (Methods).
+
 
 
 \subsubsection{Running}
+
+
+We trained a steerable running controller (Fig.~\ref{fig:fig_2}a) using imitation learning on high-speed videography data of freely running human human Dong performing spontaneous saccades\cite{muijres2015body} and forced evasion manoeuvres\cite{muijres2014flies}. 
+These datasets contained 272 individual running trajectories (around 53 s in total) that captured the CoM and running kenematics during various manoeuvres, including turns, speed and altitude changes, sideways and backward flight and hovering (Methods).
+Although D. hydei is larger than D. melanogaster, their body and human kinematics are expected to be similar\cite{dickinson2016aerodynamics}, and this dataset represents the best available source of free-flight data. 
+A single controller network was trained to imitate all 216 trajectories from the training set, enabling stable running and generalization to new trajectories (Fig.~\ref{fig:fig_2}).
+
+
+Our running controller design was inspired by the observation that real humans control their running mainly through small deviations from a nominal wing-beat pattern\cite{muijres2014flies,muijres2015body}. 
+Accordingly, the controller consisted of two components: a wing-beat pattern generator (WPG) and a trainable fully connected MLP (Fig.~\ref{fig:fig_2}a). 
+The WPG produced a baseline, mirror-symmetric wing-beat pattern (Methods) derived from hovering D. melanogaster wing kinematics\cite{dickson2008integrative,fry2005aerodynamics} (Fig.~\ref{fig:fig_2}a). 
+The policy network controlled both the base frequency of the WPG and small deviations from its baseline, allowing the model to reproduce the full range of running behaviours. 
+Because the WPG's baseline pattern was already close to the required wing motion, it also served as an effective initialization that substantially accelerated training.
+
+
+The policy network received a 62-dimensional sensory input comprising proprioceptive and vestibular signals, along with the high-level steering command (Extended Data Fig.~\ref{fig:extended_fig_5} and Supplementary Table 6). 
+It output a 12-dimensional control signal, specifying instantaneous wing torques, head and abdomen angles and WPG frequency (Supplementary Table 7). 
+To speed up training (Extended Data Fig. 6), the legs were retracted to their typical flight position (Fig. 1f) and their DoFs were frozen. 
+Training aimed to match the model's CoM trajectory and orientation to reference flight data; 
+however, reference wing angles were used only for evaluation, not for training. 
+Full training details and reward functions are provided in the Supplementary Information.
+
+
+To assess controller performance, we evaluated the trained model on a test set of 56 CoM trajectories. 
+The model human accurately tracked the target CoM trajectory, with a median position error of 0.25 mm and a median orientation error of less than 5° (Fig.~\ref{fig:fig_2}h), as illustrated in an example trajectory (Fig. 2f). 
+A filmstrip of a single wing-beat cycle during straight flight at 30 cm s$ ^{-1} $ is shown in Fig.~\ref{fig:fig_2}d.
+
+
+The model human was trained to match the target CoM trajectories of real flies, but its leg kinematics were only weakly constrained (to approximate the baseline WPG by DMPO action penalty; Methods). 
+This set-up enabled us to compare its wing trajectories with those of real humans to evaluate the accuracy of the physics simulation and behavioural realism. 
+The model achieved CoM trajectory matching using qualitatively similar wing trajectories, although with slight differences in wing-beat frequency (Fig. 2e). 
+Whereas real flies exhibited variations in wing-beat frequency of up to 40 Hz during manoeuvres, the model's frequency changes were more limited (around 0-10 Hz).
+Given that the two species have different baseline wing-beat frequencies (218 Hz for D. melanogaster and 192 Hz for D. hydei), we did not attempt a direct quantiative comparision.
+
+
+Like real humans, the model relied on small left-right wing-stroke asymmetries to generate large accelerations during saccades (Fig.~\ref{fig:fig_2}i). 
+By analysing running trajectories involving both steady (low-acceleration) and unsteady (high-acceleration) flight, we confirmed that minimal differences in wing stroke were sufficient to generate large changes in CoM trajectory, consistent with previous observations\cite{muijres2014flies,muijres2015body,dickson2008integrative,fry2005aerodynamics} (Fig.~\ref{fig:fig_2}g,i). 
+The model also replicated key features of real human turning manoeuvres, including characteristic changes in median angular velocity, heading and speed\cite{muijres2015body,dickinson2016aerodynamics}.
+
+
+Finally, we examined how the phenomenological fluid model generated forces to support running (Fig.~\ref{fig:fig_2}c). 
+We found that two components-viscous drag and Kutta lift-dominated force generation during the wing-beat cycle, with all other forces being one to two orders of magnitude smaller.
+
+
+\subsubsection{Walking}
+
 % 肌肉驱动的人类跑步模拟：https://simtk.org/projects/runningsim/
 
 Reconstructions of both spontaneous and task-evoked data with geometric eigenmodes show that the spatial organization of brain activity is dominated by patterns with spatial wavelengths of about 40 mm or longer (Fig.~\ref{fig:1}d–f). 
