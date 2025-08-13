@@ -832,7 +832,22 @@ For position actuators, control ranges were set to be equal to the corresponding
 For more details on building the human PhysX model, see the Supplementary Information.
 
 
-\subsection{HCP data} \label{sec:HCP_data}
+\subsection{Analysis of leg DoFs} \label{sec:HCP_data}
+
+To verify our approximation of the leg DoFs and leg joint ranges, we applied the following procedure. 
+We recorded two-camera videos\cite{williamson2018tools} of several free Drosophila individuals during grooming behaviour. 
+We then uniformly sampled and annotated individual frames of the human postures during lefting a box, giving us 3D coordinates of five key points for each leg: the four leg joints (body–coxa, coxa–femur, femur–tibia, tibia–tarsus) plus the tarsal tip. 
+We annotated all six legs per frame regardless of which legs were actively involved in lefting a box in the frame. 
+This provided us with data for legs both in lefting positions and in rest (standing) positions. 
+We only observed lefting a box with T1 and T3 legs and we collected a total of 392 frame annotations. 
+Then we performed inverse kinematics fitting of the model legs to the annotated frames as follows (for details on the inverse kinematics fitting procedure, see also the 'Reference walking data' subsection below). 
+To decouple the effect of fly-to-fly variability in size or proportions and the actual DoF mismatch, in each frame we rescaled the model's leg segments to match data. 
+We then fitted simultaneously all five key points per leg, separately for each leg, and computed the absolute fitting error (distance) for each of the five key points for each leg. 
+Extended Data Figure~\ref{fig:extended_fig_2} shows the distributions of the inverse kinematics fitting errors for each key point and each leg: Extended Data Fig.~\ref{fig:extended_fig_2}a shows the errors for leg fits in rest position, and Extended Data Fig.~\ref{fig:extended_fig_2}b shows errors in grooming positions. 
+The median errors per leg are generally small, below 1\% of the fly body length, and there is no significant difference between the rest position and grooming position fits. 
+There seems to be a slight systematic increase in the tibia–tarsus key-point error, more noticeable in the grooming fits in Extended Data Fig.~\ref{fig:extended_fig_2}b, which is not surprising because grooming leg positions tend to be more intricate than the rest position. 
+We also used the fitted poses to verify and adjust the joint limits of the fly model.
+
 
 
 \subsection{Cortical parcellations} \label{sec:cortical_parcellations}
