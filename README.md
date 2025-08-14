@@ -1,6 +1,6 @@
 # Human Locomotion
 
-`human-body`: human body model for MuJoCo physics.
+The modelling of human locomotion include body geometry (skeleton), body physics (muscle), body-environment interactions (tactile); imitation learning (video-control; walking and running with RL), vision-guided walking (visual navigation; unreal).
 
 ```mermaid
 graph LR
@@ -146,5 +146,6 @@ Select `Initialize Environment`, make sure the start and end points are in the c
 * [Undergraduate thesis](https://github.com/OpenHUTB/sim/tree/master/pedestrian)
 * [flybody](https://github.com/TuragaLab/flybody)
 * [Existing locomotion task library based on MuJoCo](https://github.com/google-deepmind/dm_control/tree/main/dm_control/locomotion)
+* [myoconverter](https://github.com/MyoHub/myoconverter)
 
 
