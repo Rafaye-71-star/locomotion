@@ -69,6 +69,7 @@
 %%%%
 
 \usepackage{hyperref}
+\usepackage{makecell}
 
 \usepackage{subfigure}  % 使用子图（多个图凑九宫格）
 
@@ -1194,7 +1195,6 @@ Averaged over 52 male humans.
 \begin{table}[htbp]
 	\centering
 	\small
-	\caption{eigenmodel}
 	\begin{tabular}{cc}
 		\toprule
 		Body part         &        Mass (mg)     \\
@@ -1213,19 +1213,19 @@ Averaged over 52 male humans.
 \end{table}%
 
 
-% 执行器
-\textbf{Supplementary Table 2}: 
-Actuators of the fly model in its default configuration. 
-Task-specific model modifications (e.g., disabling legs for flight) may include removing some of the actuators. 
-By default, each actuator actuates one DoF. 
-In the “position coupled” category, one actuator actuates several DoFs coupled by a MuJoCo tendon.
+x
 
 
 
 \begin{table}[htbp]
 	\centering
 	\small
-	\caption{eigenmodel}
+	\caption{% 感觉系统
+		\textbf{Supplementary Table 3}: 
+		Sensory system of the running model in its default configuration. 
+		Task-specific model modifications (e.g., disabling hands for running) may include disabling some of the sensors and altering the dimensions of the proprioception observables. 
+		All observables are calculated in human's egocentric reference frame. 
+		The actuator activation state units are the same as the corresponding actuator control units.}
 	\begin{tabular}{ccc}
 		\toprule
 		Actuator type         &        Located at  & \# of actoators     \\
@@ -1250,17 +1250,17 @@ In the “position coupled” category, one actuator actuates several DoFs coupl
 \end{table}%
 
 
-% 感觉系统
-\textbf{Supplementary Table 3}: 
-Sensory system of the running model in its default configuration. 
-Task-specific model modifications (e.g., disabling hands for running) may include disabling some of the sensors and altering the dimensions of the proprioception observables. 
-All observables are calculated in human's egocentric reference frame. 
-The actuator activation state units are the same as the corresponding actuator control units.
+
 
 \begin{table}[htbp]
 	\centering
 	\small
-	\caption{eigenmodel}
+	\caption{% 感觉系统
+		\textbf{Supplementary Table 3}: 
+		Sensory system of the running model in its default configuration. 
+		Task-specific model modifications (e.g., disabling hands for running) may include disabling some of the sensors and altering the dimensions of the proprioception observables. 
+		All observables are calculated in human's egocentric reference frame. 
+		The actuator activation state units are the same as the corresponding actuator control units.}
 	\begin{tabular}{cccc}
 		\toprule
 		Category         &        Sensor  & Units  & Array shape   \\
@@ -1287,6 +1287,42 @@ The actuator activation state units are the same as the corresponding actuator c
 \end{table}%
 
 
+
+
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 4}: 
+		% 传感系统 的不同之处
+		Correspondence between the sensory system components in human and in our human model.}
+	\begin{tabular}{ccccc}
+		\toprule
+		\makecell{Human sense\\organ, receptor}         &        Sensory modality  & \makecell{Prupose, dete\\ction, sensing}  & \makecell{Corresponding human\\ model sensor}  & Reference \\
+		\midrule
+		% Looming stimuli（逼近刺激）指通过模拟物体或威胁源的逼近运动，引发动物或人类的本能反应
+		Compound eyes     &   \makecell{Light,\\ photoreception}      &    \makecell{Self-move\\ment (optic \\flow, \\optomotor \\response), \\looming \\stimuli} & \makecell{Eye cameras, \\ velocimeter, \\ gravity \\ direction} & \cite{hengstenberg1993multisensory,strausfeld1985convergence} \\
+		\midrule
+		% 单眼
+		Ocelli     &   \makecell{Light,\\ photoreception}      &    \makecell{Dorsal light\\ response,\\ body\\ orientation,\\ postural \\ correction} & As above & \cite{hengstenberg1993multisensory,strausfeld1985convergence,mimura1970convergence} \\
+		\midrule
+		% 果蝇稳定的飞行需要称为“halteres”的本体感觉器官来检测身体旋转
+		% 单眼
+		\makecell{Halteres \\(modified \\2nd wing pair)}     &   \makecell{Mechano-\\reception}      &   \makecell{Coriolis \\forces during\\ flight; \\balance/\\equilibrium \\organ} & \makecell{Gyro, \\accelerometer} & \cite{strausfeld1985convergence,fayyazuddin1996haltere} \\
+		\midrule
+		\makecell{Leg \\ campaniform\\sensilla}     &   \makecell{Mechano-\\reception}      &   \makecell{Load/gravity} & \makecell{Force, touch,\\ gravity\\ direction} & \cite{dinges2021location} \\
+		\midrule
+		% 江氏器（Johnston's organ）    是昆虫触角梗节中较常见的一种弦音感器（chordotonal sensillum），最早由Johnston于1855年在埃及伊蚊Aedes aegypti (L.)的雄蚊触角梗角中发现。江氏器主要用于昆虫的定向，如埃及伊蚊的雄蚊常藉400Hz～650Hz的音频来判断雌蚊的位置，找到雌蚊，进行交配
+		\makecell{Johnston's\\ organ (2nd \\ antennal\\ segment)}     &   \makecell{Mechano-\\reception \\ (exteroception)}      &   \makecell{Gravity, \\air flow,\\sound (\\courtship\\ song)} & \makecell{gravity \\direction,\\ velocimiter\\, sound not \\implemented} & \cite{kamikouchi2009neural,mimura1970convergence,mamiya2015antennal} \\
+		\midrule
+		\makecell{Neck \\proprioceptor\\ (prosternal\\ organ, CO)}     &   \makecell{Mechano-\\reception \\ (proprioception)}      &   \makecell{head \\position\\; positural\\ correction} & \makecell{Joint \\angles, \\joint \\velocities} & \cite{strausfeld1985convergence} \\
+		\midrule
+		\makecell{Wing base \\tegula}     &   \makecell{Mechano-\\reception \\ via a hair \\plate and \\ campaniform\\ sensilla}      &   \makecell{Wing \\position (\\proprioception)} & As above & \cite{fudalewicz1963innervation} \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_4}%
+\end{table}%
 
 
 \subsection{Supplementary Video 1} \label{sec:NFT}
