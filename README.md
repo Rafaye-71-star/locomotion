@@ -2,6 +2,20 @@
 
 `human-body`: human body model for MuJoCo physics.
 
+```mermaid
+graph LR
+    A[OpenSim] --> B[myoconverter]
+    B --> C[MuJuCo]
+    C --> D[puppeteer]
+    C --> E[run-skeleton-run-in-3d]
+    
+    style B fill:#e1f5fe
+    style C fill:#ccffcc
+    style D fill:#fff3e0
+    style E fill:#f3e5f5
+```
+
+
 ## Configuration
 ```shell
 # create virtual python environment
