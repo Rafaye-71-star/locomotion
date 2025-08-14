@@ -1209,9 +1209,16 @@ Averaged over 52 male humans.
 		
 		\bottomrule
 	\end{tabular}%
-	\label{tab:body_part_mass}%
+	\label{tab:s_1}%
 \end{table}%
 
+
+% 执行器
+\textbf{Supplementary Table 2}: 
+Actuators of the fly model in its default configuration. 
+Task-specific model modifications (e.g., disabling legs for flight) may include removing some of the actuators. 
+By default, each actuator actuates one DoF. 
+In the “position coupled” category, one actuator actuates several DoFs coupled by a MuJoCo tendon.
 
 
 
@@ -1221,28 +1228,34 @@ Averaged over 52 male humans.
 	\caption{eigenmodel}
 	\begin{tabular}{ccc}
 		\toprule
-		feature         &        wavelength(nm)  & eigenmodel     \\
+		Actuator type         &        Located at  & \# of actoators     \\
 		\midrule
-		0      &   -      &      1  \\
-		1      &   297.7      &      2-4  \\
-		2      &   171.9      &      5-9  \\
-		3      &   121.5      &      10-16  \\
-		4      &   94.1      &      17-25  \\
-		5      &   76.9      &      26-36  \\
-		6      &   65.0      &      37-49  \\
-		7      &   56.3      &      50-64  \\
-		8      &   49.6      &      65-81  \\
-		9      &   44.4      &      82-100  \\
-		10      &   40.1      &      101-121  \\
-		11      &   35.5      &      122-144  \\
-		12      &   33.7      &      145-169  \\
-		13      &   31.2      &      170-196  \\
-		14      &   29.1      &      197-225  \\
+		torque      &   wings      &      6  \\
+		torque      &   neck      &      6  \\
+		      &   proboscis      &      3  \\
+		      &   antennae      &      5  \\
+		      &   legs (excluding tarsi)      &      42  \\
+		\midrule
+		position, coupled by tendon      &   tarsi      &      6  \\
+		(several DoFs per actuator)      &   abdomen      &      2  \\
+		\midrule
+		adhension      &   leg tips      &      6  \\
+		      &   labrum      &      2  \\
+		\midrule
+		total      &   wings      &      78  \\
 		
 		\bottomrule
 	\end{tabular}%
-	\label{tab:spatial_wavelength}%
+	\label{tab:s_2}%
 \end{table}%
+
+
+% 感觉系统
+\textbf{Supplementary Table 3}: 
+Sensory system of the running model in its default configuration. 
+Task-specific model modifications (e.g., disabling hands for running) may include disabling some of the sensors and altering the dimensions of the proprioception observables. 
+All observables are calculated in human's egocentric reference frame. 
+The actuator activation state units are the same as the corresponding actuator control units.
 
 
 
