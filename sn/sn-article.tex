@@ -68,6 +68,8 @@
 \usepackage{listings}%
 %%%%
 
+\usepackage{hyperref}
+
 \usepackage{subfigure}  % 使用子图（多个图凑九宫格）
 
 %%%%%=============================================================================%%%%
@@ -1139,6 +1141,111 @@ BMC journals: \url{https://www.biomedcentral.com/getpublished/editorial-policies
 	
 \section{Supplementary information} \label{secInfo}
 
+\subsection{Supplementary Methods}
+
+\subsubsection{Constructing the physics fly model in MuJoCo}
+
+Here we describe the steps taken in order to create the physics MuJoCo fly model, given the geometrical Blender model and measured masses of fly body parts. 
+The resulting MuJoCo model is available at \href{https://github.com/TuragaLab/flybody}{https://github.com/TuragaLab/flybody}.
+
+
+% OpenSim -> MuJoCo plugin
+\textbf{Initial conversion}. The Blender-to-MuJoCo export plug-in\cite{tunyasuvunakool2020dm_control}1 was used to export a raw MuJoCo model containing only geometrical information: 
+% 仅包含几何信息：带关节轴和限制的 身体网格 和 运动学树
+body meshes and a kinematic tree with joint axes and limits.
+
+
+\textbf{Model building script}. 
+% 使用PyMJCF操作导入 MuJoCo 的原始模型
+The raw MuJoCo model was then loaded and manipulated with a Python script using PyMJCF, a Python library for model manipulation which is part of Google DeepMind’s dm control suite\cite{tunyasuvunakool2020dm_control}. 
+The following steps were taken.
+
+
+Enforced consistent naming everywhere using a part sternum side convention e.g., “coxa T3 right”. 
+Consistent naming allows for conveniently readable loops like
+
+
+\subsubsection{Phenomenological model of fluid forces}
+
+
+\subsubsection{Running imitation task configuration}
+
+\subsubsection{Running controller reuse, vision-guided running task configuration}
+
+
+\subsubsection{Walking imitation task configuration}
+
+
+\subsubsection{Simulation speed}
+
+
+
+
+
+\subsection{Supplementary table}\label{secA1}
+
+
+
+
+% 多个人 各个部位的 实证质量
+\textbf{Supplementary Table 1}: Empirical masses of the fly body parts. 
+Averaged over 52 male humans.
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{eigenmodel}
+	\begin{tabular}{cc}
+		\toprule
+		Body part         &        Mass (mg)     \\
+		\midrule
+		head      &   0.15      \\
+		throx      &   0.34      \\
+		abdomen      &   0.38      \\
+		leg (each)      &   0.0162      \\
+		wing (each)      &   0.008      \\
+		\midrule
+		fly total      &   0.983      \\
+		
+		\bottomrule
+	\end{tabular}%
+	\label{tab:body_part_mass}%
+\end{table}%
+
+
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{eigenmodel}
+	\begin{tabular}{ccc}
+		\toprule
+		feature         &        wavelength(nm)  & eigenmodel     \\
+		\midrule
+		0      &   -      &      1  \\
+		1      &   297.7      &      2-4  \\
+		2      &   171.9      &      5-9  \\
+		3      &   121.5      &      10-16  \\
+		4      &   94.1      &      17-25  \\
+		5      &   76.9      &      26-36  \\
+		6      &   65.0      &      37-49  \\
+		7      &   56.3      &      50-64  \\
+		8      &   49.6      &      65-81  \\
+		9      &   44.4      &      82-100  \\
+		10      &   40.1      &      101-121  \\
+		11      &   35.5      &      122-144  \\
+		12      &   33.7      &      145-169  \\
+		13      &   31.2      &      170-196  \\
+		14      &   29.1      &      197-225  \\
+		
+		\bottomrule
+	\end{tabular}%
+	\label{tab:spatial_wavelength}%
+\end{table}%
+
+
+
 \subsection{Supplementary Video 1} \label{sec:NFT}
 
 % TODO 虚幻中的 3 个跑步视频
@@ -1192,36 +1299,7 @@ Collisions are disabled in this video.
 
 
 
-\subsection{Supplementary table}\label{secA1}
 
-\begin{table}[htbp]
-	\centering
-	\small
-	\caption{eigenmodel}
-	\begin{tabular}{ccc}
-		\toprule
-		feature         &        wavelength(nm)  & eigenmodel     \\
-		\midrule
-		0      &   -      &      1  \\
-		1      &   297.7      &      2-4  \\
-		2      &   171.9      &      5-9  \\
-		3      &   121.5      &      10-16  \\
-		4      &   94.1      &      17-25  \\
-		5      &   76.9      &      26-36  \\
-		6      &   65.0      &      37-49  \\
-		7      &   56.3      &      50-64  \\
-		8      &   49.6      &      65-81  \\
-		9      &   44.4      &      82-100  \\
-		10      &   40.1      &      101-121  \\
-		11      &   35.5      &      122-144  \\
-		12      &   33.7      &      145-169  \\
-		13      &   31.2      &      170-196  \\
-		14      &   29.1      &      197-225  \\
-		
-		\bottomrule
-	\end{tabular}%
-	\label{tab:spatial_wavelength}%
-\end{table}%
 
 
 \subsection{Supplementary figure}\label{secS1}
