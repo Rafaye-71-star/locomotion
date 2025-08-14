@@ -791,13 +791,216 @@ There seems to be a slight systematic increase in the tibia–tarsus key-point e
 We also used the fitted poses to verify and adjust the joint limits of the fly model.
 
 
+\subsection{Distributed RL}
+
+
+For each locomotion task, we trained a policy network using a distributed RL set-up40,64 powered by Ray, an open-source general-purpose distributed computing package41. 
+The distributed training configuration is shown in Extended Data Fig.~\ref{fig:extended_fig_7}. 
+% 多CPU负责收集数据，单 GPU 负责学习样本
+Multiple CPU-based actors run in parallel in separate MuJoCo environment instances, generate experiences and log them into a replay buffer. 
+A single GPU-based learner samples training batches from the replay buffer and updates the policy and critic network weights. 
+% 评价网络
+The critic network is a part of the training process only and is not used by the fly model directly. 
+Each actor explores the environment and generates experiences using its own copy of the policy network whose weights are periodically synchronized with the current learner policy. 
+For learner policy updates, we used the off-policy actor–critic DMPO agent, a distributional extension\cite{bellemare2017distributional} of the MPO agent\cite{abdolmaleki2018relative,abdolmaleki2018maximum}. 
+We used dm\_control\cite{tunyasuvunakool2020dm_control} to set up the RL environments and for MuJoCo Python bindings. 
+We used the DMPO agent implemented in acme\cite{hoffman2020acme} and the replay buffer implemented in reverb\cite{cassirer2021reverb}, and the Adam optimizer\cite{kingma2014adam}. 
+The hyperparameters of the distributed set-up and of the DMPO agent are shown in Supplementary Tables 13 and 14.
+
+
+To guarantee stability, we ran MuJoCo physics simulations at time steps four to ten times smaller than those used to sample action commands from the policies65 (see the physics and control time-step values in Supplementary Tables 15 and 16). 
+The policies were stochastic during training (outputting distribution over actions) to facilitate exploration. 
+The distributions were Gaussian, independent for each action dimension and parameterized by mean and standard deviation. 
+The policy network architectures for each task are provided in Supplementary Tables 17–19. 
+At test time, the policies were reverted to be deterministic by using the means of the predicted action distributions. 
+The actions output by the policy networks were in the canonical range [-1, 1].
+The actions were then rescaled to match their corresponding proper ranges in the fly model; 
+for example, joint limits for position actuators or force limits for force actuators. 
+All observables (policy inputs) were strictly egocentric; 
+that is, calculated in the local reference frame of the fly model. 
+We only used feedforward policy and critic networks and did not extensively sweep network architectures.
+
+
+We trained the model in episodes of a finite number of time steps. 
+An episode ends either (i) when the episode time limit is successfully reached or (ii) when an early termination condition, indicating failure, is met. 
+Details of the termination conditions are provided in the corresponding RL task sections in the Supplementary Information. 
+In the first case, the agent estimates the remaining infinite-horizon future rewards (beyond the episode’s final step) by bootstrapping from the value of the state at the end of the episode. 
+In the second case, the reward sequence is truncated by setting the future reward to zero. 
+The loss of the future infinite-horizon rewards is an unfavourable outcome and the agent will try to learn to avoid events that trigger early episode termination.
+
+
+\subsection{Modelling running behaviour}
+
+\textbf{Running physics parameters}. 
+We used the following procedure to fit the running physics parameters. 
+We started with a wing motion trajectory recorded previously from a hovering D. melanogaster13 (https:// github.com/willdickson/fmech). 
+We placed the model in a hovering position and actuated the wings to reproduce the real wing trajectory by using the real wing angles as target angles for the wing actuators. 
+We then iteratively adjusted (increased) the wing actuator gain to a point at which the mean absolute error between the reference wing angles and the trajectory traversed by the model’s wings was below 5\% of the wing angle amplitude. 
+At each iteration, we also fitted the wing joint damping coefficient to avoid underdamping and ensuing wing oscillations. 
+We used the same gain value for all three wing actuators (yaw, roll and pitch).
+Our final values for the gain and damping pair were gainprm = [18, 18, 18], damping=0.007769. 
+
+
+Having found suitable wing actuator gain and wing joint damping, we adjusted the MuJoCo fluid model coefficients (Supplementary Information and Supplementary Table 20), which scale the drag and lift forces produced by the flapping wings. 
+These (dimensionless) fluid model coefficients are stored in the fluidcoef MuJoCo attribute. 
+We placed the model in a flight position and again drove the wings with the real reference angles as target angles for the wing actuators. 
+We then iteratively found a set of fluid parameters such that the net lift approximately balanced the fly model weight during several wing-beat cycles, fluidcoef = [1.0, 0.5, 1.5, 1.7, 1.0].
+The flight physics parameters are summarized in Supplementary Table 21.
+
+
+We also performed a sensitivity analysis on the viscous drag and Kutta lift, the two dominant forces in the fluid dynamics. 
+We retrained imitation learning of free flight with modified choices for the coefficients associated with viscous drag and Kutta lift, with all other coefficients held fixed. 
+We then evaluated the degree to which imitation learning was able to correctly reproduce ground truth CoM flight trajectories with realistic wing kinematics, as in the original experiments reported in the paper. 
+We also quantified the fraction of trajectories in which the fly crashed to the ground as a second performance measure. 
+Extended Data Figure~\ref{fig:extended_fig_4} shows that flight performance is robust to even 20\% variation in these parameters.
+
+
+\textbf{WPG}. 
+% wing-beat pattern generator (WPG) 扑翼模式发生器
+All our flight tasks use a WPG that produces, in an open-loop manner, a fixed mirror-symmetric cyclic baseline wing trajectory. 
+The WPG generates the baseline pattern by design, with no learning involved. 
+The baseline trajectory closely follows a previously recorded wing pattern of a hovering D. melanogaster13. 
+The baseline pattern is available in the Figshare supplementary datasets\cite{vaxenburg2025whole}. 
+At each simulation time step, the WPG retrieves and outputs the six wing angles (three per wing; Fig.~\ref{fig:fig_2}) of the baseline wing pattern for the current wing-beat cycle step. 
+These baseline wing angles get converted to torque action commands for the wing actuators. 
+Although it already produces a realistic-looking wing motion, the fixed baseline wing trajectory alone is not sufficient to support a stable hover, owing to the lack of a feedback loop, approximations in the MuJoCo fluid model and the sim-to-real gap. 
+It is the role of the policy network to provide these missing components. 
+To achieve this, the WPG torque action is combined (additively) with the policy output to produce the final action vector to be sent to the wing actuators. 
+In this way, the policy modulates the fixed baseline pattern and produces flight required by the task at hand; 
+for example, stabilize flight, hover, speed up, turn and so on.
+
+
+
+The wing motion produced by the combination of the WPG and the trained policy stays close to the initial WPG baseline pattern. 
+This is achieved by penalizing the magnitude of the policy actions during training with the DMPO agent36,37. 
+In this way, the agent is encouraged to discover a physically viable wing motion pattern by using only minimal policy actions without deviating substantially from the baseline pattern. 
+In addition, the WPG can vary the frequency of the output baseline pattern within a predefined range. 
+A single scalar out of the policy action vector is used by the WPG to control the baseline wing-beat frequency. 
+In our setting, the wing-beat frequency was allowed to vary within a 10\% centred at 218 Hz, the D. melanogaster average frequency\cite{fry2005aerodynamics}.
+The WPG is implemented as a lookup table containing the single fixed baseline wing pattern resampled at different wing-beat frequencies within the 10\% frequency range. 
+When a frequency change is requested by the policy, the WPG will smoothly connect the wing patterns at the old and new frequencies.
+
+
+\textbf{Reference running data}. 
+As the flight reference data, we used previously recorded trajectories of freely flying D. hydei. 
+The trajectories contain a human's Cartesian CoM position and body orientation represented as a quaternion.
+The trajectories were recorded at 7,500 fps. 
+We started with 44 trajectories of spontaneous turns (saccades)6 and 92 trajectories of evasion manoeuvres5 in response to visual looming stimuli. 
+Each reference trajectory started with the human first running normally and then performing a manoeuvre. 
+During and after the manoeuvre, the human could run straight, sideways and backwards. 
+The flies could also ascend and descend. 
+We linearly interpolated the raw trajectories to the flight simulation control step of 0.2 ms.
+Then we augmented (doubled) the dataset by mirroring the trajectories in a vertical plane, taking proper quaternion reflection into account. 
+This resulted in a dataset of 272 flight trajectories, equivalent to around 53 s of real-time flight.
+The dataset is available at Figshare (ref. 20). 
+We used 80\% of the trajectories for training and the rest for testing. 
+Owing to the small size of the dataset, to maintain balance between left and right turns in the training data, we split the dataset such that if a trajectory was in the training set, so was its mirrored counterpart. 
+We simulated flight at 0.05-ms physics time steps and 0.2-ms control time steps (Supplementary Table 15).
+
+
+\subsection{Modelling walking behaviour}
+
+Reference walking data. We obtained single-camera top-down-view videos of several freely behaving Drosophila individuals with 2D key-point tracking\cite{robie2024fly} (Extended Data Fig.~\ref{fig:extended_fig_8}a). 
+In brief, groups of ten walking flies (w+;BPp65ADZp (attP40); BPZpGDBD (attP2), 20XUAS-GtACR1-EYFP (attP2); refs. 68,69) were recorded at 150 fps in a shallow, flat-bottomed 55-mm-diameter arena.
+The 2D positions of 17 key points were predicted with the Animal Part Tracker (APT)70. 
+From nine such videos, we prepared the walking reference dataset. 
+We used 13 of the 17 key points: 3 on the head, 3 on the thorax, one at the tip of abdomen and the 6 leg tips, as shown in Extended Data Fig.~\ref{fig:extended_fig_8}. 
+We selected female flies and isolated walking trajectory segments based on the following criteria. 
+At each frame, we required: (i) the distance to the other flies in the arena is larger than one body length; and (ii) the velocity component parallel to the fly body is larger than perpendicular to the body. 
+Then we required (iii) a snippet duration of at least 20 frames (133 ms; roughly corresponds to one fly step); 
+and (iv) a ratio of mean leg-tip speed to mean CoM speed smaller than 1.5. 
+This produced a set of trajectory snippets with flies walking at different speeds, turning and standing still. 
+The average walking speeds per snippet are distributed approximately in the range [0, 4] cm s$ ^{-1} $ (Fig.~\ref{fig:fig_3}, inset). 
+We then linearly interpolated the walking snippets from 6.7-ms time steps to the walking simulation control of 2-ms time steps.
+
+
+The 13 key points tracked in 2 dimensions, however, are not sufficient for the RL task reward calculation (Supplementary Information), which requires complete specification of the model’s pose, position and orientation. 
+Specifically, this full-body representation should include all joint angles, joint axis orientations, joint velocities, body position and orientation and leg-tip positions. 
+Obtaining the full-body data for the model from the experimental data required, first, lifting the 2D walking snippets by complementing the horizontal $ x $, $ y $ coordinates with the third vertical $ z $ dimension.
+Based on a separate side-view video of a walking fly71, and our fly model’s default standing position, we approximated the body height and pitch angle during walking by a single fixed value. 
+From this video, we also estimated the amplitudes of the arcs traversed by leg tips during swing motion. 
+The amplitudes were A = 0.086, 0.047 and 0.051 cm for the T1, T2 and T3 legs, respectively. 
+We approximated the z coordinate of the leg-tip swing arcs by the sine function as $ z = A sin(x) $, with $ x $ going from 0 to $ \pi $ for each single leg swing.
+Using the 2D coordinates of the leg-tip key points, we separated leg swings from stances based on leg-tip horizontal velocities in the fly’s egocentric reference frame. 
+Then we added the approximate sine-arcs to the swing segments of the leg-tip trajectories, keeping $ z = 0 $ for stances.
+This procedure produced 3D coordinates for the 13 key points in the walking snippets selected earlier.
+
+
+As a final step, we computed the full-body reference poses for each frame in all snippets. 
+We added 13 key-point sites to the fly model and performed inverse kinematics fitting of the whole model body to the fly poses in the 3D walking snippets. 
+For each snippet, we rescaled the reference key points to match the size of the fly model. 
+In each frame, we simultaneously fit all 13 key points by minimizing the following objective with respect to the model joint angles, $ q = (q_1, q_2, ...) $:
+\begin{equation}\label{key}
+	\min_{q} [ 
+		\sum_{i=1}^{13} || s_i (q) - s_i^{*} ||^2
+		+ \lambda || q - q_0 ||^2
+	 ]
+\end{equation}
+%
+where $ s_i(q) $ and $ s_i^{*} $ are the 3D Cartesian coordinates of the 13 key points of the model and the fitting target pose, respectively. 
+We used gradient descent to minimize this objective. 
+To use the time continuity across frames, we used the final pose fitted for the previous frame to initialize the fitting procedure for each subsequent frame. 
+Because the 13 key points (only 6 of which specify the leg tips) do not fully define the leg postures in space, we added a small regularization term to encourage fitting poses that are closer to the default standing pose of the fly model. 
+The default pose is specified by a vector of model joint angles, $ q_0 $, a vector of zeros in our case. 
+The regularization strength is $ \lambda = 1 \times 10^{-4} $ cm$ ^2 $ rad$ ^2 $.
+Having found the joint angles q for the reference poses in each frame, we also computed joint velocities, $ dq/dt $, using finite differences.
+
+
+This procedure resulted in a complete full-body representation (joint angles, positions, orientations and velocities) of the reference walking trajectories for the walking imitation task. 
+In total, the walking dataset comprises around  16,000 walking snippets, amounting to around 80 min of fly walking behaviour.
+The dataset is available at Figshare\cite{vaxenburg2025whole}.
+
+
+% 触觉（搬箱子）
+\textbf{Adhesion, friction and contact forces}. 
+The fly model's ability to attach to and walk on inclined surfaces is enabled by the combination of adhesion, friction and contact forces. 
+In this section we describe the details of the adhesion mechanism in MuJoCo and how the fly model uses the leg adhesion actuators. 
+Let us consider a simple example of the stationary fly on an inclined plane. 
+When a contact is detected between a tarsal claw collision geom and the floor surface, MuJoCo computes the (constraint) contact force, which is the ground reaction force in this case (Extended Data Fig.~\ref{fig:extended_fig_3}a). 
+Within the Coulomb friction model, as long as the contact force vector $ f_\text{contact} $ is within the friction cone boundaries, the tangential component of the net external force ($ f_\text{weight} $, the fraction of the total fly weight supported by the given leg in this simplified example), which acts to produce slipping motion, will be balanced by the tangential component $ f_\text{contact} $ of the contact force in the opposite direction. 
+The friction cone (our fly model uses elliptic friction cones; 
+MuJoCo also supports pyramidal friction cones) includes all contact force vectors satisfying $ f_{\text{contact}^{||} \let \mu f_{\text{contact}^{-}}} $, where $ \mu $ is the static friction coefficient.
+Outside of the friction cone, that is, for contact forces beyond the threshold $ \mu f_{\text{contact}}^{-} $, slipping motion will occur.
+Note that within this friction model, the cone angle is a function of the friction coefficient alone and is given by $ \theta = tan^{-1} \mu $.
+In our model, $ \mu = 1 $ and $ \theta = 45^{\circ} $.
+
+
+% 粘附执行器
+In MuJoCo, the action of an adhesion actuator is equivalent to injecting force in the normal contact direction (Extended Data Fig.~\ref{fig:fig_3}a), effectively acting to push the fly’s claw into the floor. 
+In response, the normal component $ f_\text{contact}^{-} $ of the contact force will increase by the same amount. 
+Although there is no change in the tangential contact force component owing to the adhesion, note how the net contact force vector is now further away from the friction cone boundary, thus providing a larger slip-resisting margin, which can be used for forward walking propulsion, for example. 
+Beyond its role in the Coulomb friction mechanism, the adhesion force can also directly counteract gravity to enable walking on arbitrarily oriented surfaces, such as vertical walls or ceilings.
+
+
+% 行走
+Extended Data Figure~\ref{fig:extended_fig_3}b shows the time-lapse of the walking task in which the fly model was trained to use adhesion to overcome bumpy terrain. 
+This task is similar to the walking imitation task described above (Fig.~\ref{fig:fig_3}). 
+The fly is required to imitate a single real-data walking snippet of walking straight at a fixed speed, 2.7 cm s$ ^{-1} $.
+In the fly’s way, we introduced a sine-like bump obstacle that cannot be overcome without adhesion. 
+The bump obstacle is procedurally regenerated at each training episode with the bump’s height and length varying in the ranges [0, 2] and [2, 4] cm, respectively.
+Thus, the bump inclination angle was between 0° and 72°. 
+We also added a small action penalty, epsilon\_penalty=$ 3\times 10^{-4} $, through the DMPO agent mechanism, to encourage the agent to prefer economic actions, including the adhesion action. 
+We recorded the adhesion action and contact forces during a trained policy rollout on a bump with a maximum inclination angle of around 45$ ^\circ $°, as shown in Extended Data Fig.~\ref{fig:extended_fig_3}c–f.
+
+
+The adhesion forces produced by the leg adhesion actuators while overcoming the obstacle are shown in Extended Data Fig.~\ref{fig:extended_fig_3}c. 
+The model’s use of adhesion increases as the terrain angle becomes steeper. 
+The fly model learnt to use mostly the T1 and T2 leg pairs on the way uphill, and mostly T3 on the way downhill. 
+Owing to the lack of constraints, there is an asymmetry (degeneracy) between the left and right leg adhesion use, which we did not attempt to resolve. 
+In our model, the largest adhesion force per leg is one fly body weight, which is also shown in the figure for comparison. The norm of the corresponding contact force vectors $ | f_\text{contact} | $ for each leg is shown in Extended Data Fig.~\ref{fig:extended_fig_3}d. 
+The effect of creating a larger slip-resisting margin—moving fcontact further away from the friction cone boundary—with increasing adhesion is shown in Extended Data Fig.~\ref{fig:extended_fig_3}e. 
+Without the adhesion, most of the leg-floor contacts would not have been able to counteract the slipping force load, especially in the ‘driving’ T1, T2 legs on the way up, and T3 on the way down (Extended Data Fig.~\ref{fig:extended_fig_3}f).
 
 
 
 \subsection{Data availability} \label{sec:data_availability}
 
+Confocal imaging stack, flight and walking imitation datasets, base wing-beat pattern, grooming pose data, and trained controller networks are available at Figshare\cite{vaxenburg2025whole}.
+
 
 \subsection{Code availability} \label{sec:code_availability}
+
+The fly model and code are publicly available at https://github.com/TuragaLab/flybody
 
 
 \section{Extended Figure}

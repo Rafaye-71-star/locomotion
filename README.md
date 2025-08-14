@@ -143,9 +143,11 @@ Select `Initialize Environment`, make sure the start and end points are in the c
 
 ## Reference
 
-* [Undergraduate thesis](https://github.com/OpenHUTB/sim/tree/master/pedestrian)
-* [flybody](https://github.com/TuragaLab/flybody)
-* [Existing locomotion task library based on MuJoCo](https://github.com/google-deepmind/dm_control/tree/main/dm_control/locomotion)
+* [flybody](https://github.com/TuragaLab/flybody) - [flybody dataset](https://doi.org/10.25378/janelia.25309105)
+* [puppeteer](https://github.com/nicklashansen/puppeteer) - Using MDControl in MuJoCo: Layered World Model as a Visual Full-Body Humanoid Controller
+* [MuJoCo musculoskeletal models set](https://github.com/MyoHub/myosuite)
 * [myoconverter](https://github.com/MyoHub/myoconverter)
+
+
 
 
