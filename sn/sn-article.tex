@@ -1257,6 +1257,36 @@ Task-specific model modifications (e.g., disabling hands for running) may includ
 All observables are calculated in human's egocentric reference frame. 
 The actuator activation state units are the same as the corresponding actuator control units.
 
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{eigenmodel}
+	\begin{tabular}{cccc}
+		\toprule
+		Category         &        Sensor  & Units  & Array shape   \\
+		\midrule
+		vision      &   right eye camera      &    unitless RGB & (32, 32, 3)  \\
+		      &   left eye camera      &     & (32, 32, 3)  \\
+		% 速度计（人的前庭系统中没有）
+		vesitibular      &   velocimeter      &    cm/s & 3  \\
+		      &   accelerometer      &    cm/s$ ^2 $ & 3  \\
+		      &   gyro (rotational velocity)      &    rad/s & 3  \\
+		      &   gravity direction      &    cm & 3  \\
+		% 本体感受：关节角度（传感器是什么）
+		proprioception      &   joint angles      &    rad & 102  \\
+		      &   joint velocities      &    rad/s & 102  \\
+		      &   actuator activation state      &    same as control & 78  \\
+		% 末端器位置
+		      &   end-effector positions      &    unitless RGB & (7, 3)  \\
+		% 机械性感受
+		mechanoreception      &   leg force sensors      &    dyn & (6, 3)  \\
+		      &   leg touch sensors      &    dyn & 6  \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_3}%
+\end{table}%
+
+
 
 
 \subsection{Supplementary Video 1} \label{sec:NFT}
