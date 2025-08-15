@@ -34,26 +34,7 @@ pip install -r requirements.txt
 
 The fruit fly body model lives in [this directory][fly-home]. To visualize it, you can drag-and-drop `fruitfly.xml` or `floor.xml` to [MuJoCo](https://github.com/google-deepmind/mujoco/releases)'s `simulate` viewer.
 
-Interacting with the fly via Python is as simple as:
-
-```python
-import numpy as np
-import mediapy
-
-from flybody.fly_envs import walk_imitation
-
-# Create walking imitation environment.
-env = walk_imitation()
-
-# Run environment loop with random actions for a bit.
-for _ in range(100):
-   action = np.random.normal(size=59)  # 59 is the walking action dimension.
-   timestep = env.step(action)
-
-# Generate a pretty image.
-pixels = env.physics.render(camera_id=1)
-mediapy.show_image(pixels)
-```
+Interacting with the fly via [fly.demo.py](fly_demo.py) .
 
 The quickest way to get started with `flybody` is to take a look at a [tutorial notebook][tutorial] or [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)][tutorial-colab].
 
