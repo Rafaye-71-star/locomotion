@@ -1398,6 +1398,63 @@ Averaged over 52 male humans.
 \end{table}%
 
 
+
+% 跑步模仿任务中 的动作
+\begin{table}[htbp]
+	\centering
+	\caption{\textbf{Supplementary Table 7}: Action in the running imitation task.}
+	\small
+	\begin{tabular}{cc}
+		\toprule
+		Actions (policy outputs)         &        Array shape     \\
+		\midrule
+		head      &   3      \\
+		wings      &   6      \\
+		abdomen      &   2      \\
+		WPG frequency control      &   1      \\
+		\midrule
+		total action dimension      &   12      \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_7}%
+\end{table}%
+
+
+% 跑步中的观测量
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 8}: 
+		Observations in the walking imitation task. 
+		All observables are calculated in human's egocentric reference frame.
+		The actuator activation state units are the same as the corresponding actuator control units.}
+	\begin{tabular}{cccc}
+		\toprule
+		Category         &        Observables (policy inputs)  & Units  & Array shape  \\
+		\midrule
+		Vesitibular     &  velocimeter      &   cm/s & 3  \\
+		&  accelerameter      &   cm/s$ ^2 $ & 3  \\
+		&  gyro      &   rad/s$ ^2 $ & 3  \\
+		&  gravity direction      &   cm & 3  \\
+		\midrule
+		proprioception     &  joint angles      &   rad & 85  \\
+		&  joint velocities      &   rad/s & 85  \\
+		&  actuator activation state      &   same as control & 59  \\
+		&  end-effector positions      &   cm & (7, 3)  \\
+		\midrule
+		mechanoreception     &  leg force sensors      &   dyn & (6, 3)  \\
+		     &  leg touch sensors      &   dyn & 6  \\
+		\midrule
+		task inputs     &  reference CoM Displacement      &   cm & (65, 3)  \\
+		(steering commands)     &  reference orientation displacement      &   \makecell{unitless \\quaternion} & (65, 4)  \\
+		\midrule
+		total obs. dimension     &        &    & 741  \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_8}%
+\end{table}%
+
+
 \subsection{Supplementary Video 1} \label{sec:NFT}
 
 % TODO 虚幻中的 3 个跑步视频
