@@ -1166,17 +1166,38 @@ Enforced consistent naming everywhere using a part sternum side convention e.g.,
 Consistent naming allows for conveniently readable loops like
 
 
+% 流体作用力的现象学模型
 \subsubsection{Phenomenological model of fluid forces}
 
 
+% 库塔升力
+\textbf{Kutta lift}
+
+% 马格努斯力是旋转物体在流体中运动时因压力差产生的横向作用力，其方向垂直于流体流动方向与物体旋转轴。
+\textbf{Magnus force}
+
+
+% 粘性阻力是船舶航行时因流体粘性产生的阻力，由摩擦阻力和粘性压差阻力组成，其中摩擦阻力占比超过50%
+\textbf{Viscous drag}
+
+
+% 附加质量
+% 物体在流体中变速运动，推动物体的力不仅要为增加物体的动能做功，还要为增加周围流体的动能做功。因此具有一定质量的物体要获得加速度，施加在它上面的力将大于物体质量与加速度的乘积，增加的这部分质量就是附加质量。 [1]附加质量与物体本身的形状及运动方向有关。
+\textbf{Added mass}
+
+
+% 跑步模仿任务 的配置
 \subsubsection{Running imitation task configuration}
 
+% 跑步控制的再使用（视觉引导跑步任务配置）
 \subsubsection{Running controller reuse, vision-guided running task configuration}
 
 
+% 跑步模仿人物 的配置
 \subsubsection{Walking imitation task configuration}
 
 
+% 模拟速度
 \subsubsection{Simulation speed}
 
 
@@ -1213,7 +1234,6 @@ Averaged over 52 male humans.
 \end{table}%
 
 
-x
 
 
 
@@ -1231,7 +1251,7 @@ x
 		Actuator type         &        Located at  & \# of actoators     \\
 		\midrule
 		torque      &   wings      &      6  \\
-		torque      &   neck      &      6  \\
+		position      &   neck      &      6  \\
 		      &   proboscis      &      3  \\
 		      &   antennae      &      5  \\
 		      &   legs (excluding tarsi)      &      42  \\
@@ -1322,6 +1342,59 @@ x
 		\bottomrule
 	\end{tabular}%
 	\label{tab:s_4}%
+\end{table}%
+
+
+
+
+% 运行时间分析
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 5}: 
+		Breakdown of average times of one control timestep for different fly model behaviors simulated on a single core of Intel Xeon CPU E5-2697 v3 @ 2.60GHz. 
+		All times are in units of ms.}
+	\begin{tabular}{ccccccccc}
+		\toprule
+		\makecell{Component:\\Behavior}         &        Policy  & RL env  & \makecell{MuJoCo\\control}  & \makecell{MuJoCo\\physics} & \makecell{Total\\step time} & \makecell{Real time\\simulated} & \makecell{\% real time\\total} & \makecell{\% real time\\total} \\
+		\midrule
+		Running     &   3.64      &    3.67 & 1.11 & 0.278 & 8.43 & 0.2 & 2.37\% & 18.0\% \\
+		\midrule
+		Walking     &   4.31      &    4.49 & 4.64 & 0.464 & 13.73 & 2.0 & 14.6\% & 43.1\% \\
+		\makecell{Vision-\\guided\\flight}     &   4.51      &    9.83 & 1.03 & 0.257 & 15.36 & 0.2 & 1.30\% & 19.5\% \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_5}%
+\end{table}%
+
+
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 6}: 
+		Observations in the running imitation task. 
+		All observables are calculated in fly’s egocentric reference frame.}
+	\begin{tabular}{cccc}
+		\toprule
+		Category         &        Observables (policy inputs)  & Units  & Array shape  \\
+		\midrule
+		Vesitibular     &  velocimeter      &   cm/s & 3  \\
+		     &  accelerameter      &   cm/s$ ^2 $ & 3  \\
+		     &  gyro      &   rad/s$ ^2 $ & 3  \\
+		     &  gravity direction      &   cm & 3  \\
+		\midrule
+		proprioception     &  joint angles      &   rad & 25  \\
+		     &  joint velocities      &   rad/s & 25  \\
+		\midrule
+		task inputs     &  reference CoM Displacement      &   cm & (6, 3)  \\
+		(steering commands)     &  reference orientation displacement      &   \makecell{unitless \\quaternion} & (6, 4)  \\
+		\midrule
+		total obs. dimension     &        &    & 104  \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_6}%
 \end{table}%
 
 
