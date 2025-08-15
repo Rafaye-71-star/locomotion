@@ -234,29 +234,32 @@ amplitude_mid = 0.5 * np.array([0.5, -0.5, -2, 1, 2])
 
 
 # %% [markdown]
-# Now we can simulate the motion sequence. At each control step, we will be writing the control into MuJoCo's `mjData->ctrl`, exposed here as `physics.data.ctrl`. We will also engage the leg adhesion actuators at a certain point during the motion sequence. 
+# 现在我们可以模拟运动序列。在每个控制步骤中，我们将将控件写入Mujoco的`mjdata->ctrl`中，以`physics.data.ctrl`暴露出来。我们还将在运动序列期间的某个点接合腿粘附执行器。
 # 
-# The control semantics is the target joint angles for position actuators, and (scaled) force for force and adhesion actuators (see [MuJoCo docs](https://mujoco.readthedocs.io/en/stable/overview.html) for more details). With the exception of wings and adhesion, our model uses position actuators. The wings are powered by force (torque) actuators.
+# 控制语义是位置执行器的目标关节角，而（缩放）力和粘附执行器的力（请参见[Mujoco 文档](https://mujoco.readthedocs.io/en/stable/stable/overview.html) ）。
+# 除翅膀和粘附外，我们的模型使用位置执行器。
+# 翅膀由力（扭矩）执行器提供动力。
 # 
-# We will change the control once every `physics_to_ctrl_ratio == 10` simulation steps, to ensure simulation stability (see `dm_control` [paper](https://arxiv.org/abs/2006.12983) for more details).
+# 我们将每次更改控件一次`physics_to_ctrl_ratio == 10`仿真步骤，以确保仿真稳定性（更多详细信息请参阅`dm_control`的 [论文](https://arxiv.org/abs/2006.12983) 。
 # 
-# Note that in the first part of the motion sequence, "Let wings fold", we don't alter `physics.data.ctrl` yet and it is still zero after resetting the simulation with `physics.reset()`. Nevertheless, the wings will fold -- this is achieved by the weak springs acting to move the wings to a reference position, as described above.
+# 请注意，在运动序列的第一部分“让翅膀折叠”中，我们没有更改`physics.data.ctrl`这一变量，并且在用`physics.reset()`重置模拟后，该变量的值仍然为零。
+# 然而，如上所述，翅膀会折叠 -- 这是由弱弹簧作用将翅膀移至参考位置的弱弹簧来实现的。
 
 n_steps = 100
 physics_to_ctrl_ratio = 10
 frames = []
 
-# Reset physics to initial default state.
+# 将物理重置为初始默认状态。
 physics.reset()
 
-# Let wings fold.
+# 让翅膀折叠。
 for i in range(n_steps):
     pixels = physics.render(camera_id=cameras['hero'], **frame_size)
     frames.append(pixels)
     for _ in range(physics_to_ctrl_ratio):
         physics.step()
 
-# Twist head.
+# 扭头。
 for i in range(n_steps):
     pixels = physics.render(camera_id=cameras['hero'], **frame_size)
     frames.append(pixels)
@@ -264,7 +267,7 @@ for i in range(n_steps):
     for _ in range(physics_to_ctrl_ratio):
         physics.step()
 
-# Move middle right leg.
+# 移动中间的右侧腿。
 for i in range(n_steps+50):
     if i <= n_steps:
         physics.named.data.ctrl[leg_actuators_L2] = amplitude_mid * np.sin(np.pi * i/n_steps)
@@ -273,10 +276,10 @@ for i in range(n_steps+50):
     pixels = physics.render(camera_id=cameras['hero'], **frame_size)
     frames.append(pixels)
 
-# Activate middle leg adhision to prevent slipping when front legs are lifted later.
+# 激活中间腿粘附以防止稍后提起前腿时滑倒。
 physics.named.data.ctrl[['adhere_claw_T2_right', 'adhere_claw_T2_left']] = 1.
 
-# Lift fronts legs with lag.
+# 随后抬起前腿。
 for i in range(n_steps+100):
     left_angle = np.pi * i/n_steps
     right_angle = np.pi * i/n_steps - np.pi/5
@@ -292,18 +295,17 @@ for i in range(n_steps+100):
 display_video(frames)
 
 # %% [markdown]
-# ## Actuate entire body with random actions
-# Now let's actuate all of the degrees of freedom at once with random control.
+# ## 通过随机动作驱动整个身体
+# 现在，让我们通过随机控制立即启动所有自由度。
 # 
-# As force actuators (wings) and position actuators (the rest of the body) have different control semantics (scaled force and target joint angles, respectively), we'll actuate them with control signals of different magnitude. Let's find the indices for each actuator group first:
+# 由于力执行器（翅膀）和位置执行器（身体其余部分）具有不同的控制语义（分别为缩放力和目标关节角），我们将使用不同幅度的控制信号来执行它们。让我们首先找到每个执行器组的索引：
 
-# %%
-wing_act_indices = []  # Force actuators.
-body_act_indices = []  # Position actuators.
-# Loop over all actuators.
+wing_act_indices = []  # 力执行器。
+body_act_indices = []  # 位置执行器。
+# 在所有执行器上循环。
 for i in range(physics.model.nu):
     name = physics.model.id2name(i, 'actuator')
-    # Store wing actuator indices and rest of indices separately.
+    # 分别存储翅膀执行器索引和其余索引。
     if 'wing' in name:
         wing_act_indices.append(i)
     else:
@@ -312,10 +314,10 @@ for i in range(physics.model.nu):
 print(wing_act_indices)
 print(body_act_indices)
 
-# %% [markdown]
-# Run simulation and actuate the fly body with random actions.
 
-# %%
+# %% [markdown]
+# 运行模拟并通过随机动作来启动果蝇。
+
 n_body_actions = len(body_act_indices)
 n_wing_actions = len(wing_act_indices)
 
@@ -323,7 +325,7 @@ n_steps = 300
 physics_to_ctrl_ratio = 10
 frames = []
 
-# Reset simulatiomn to initial default state.
+# 将模拟重置为初始默认状态。
 physics.reset()
 
 for i in range(n_steps):
@@ -336,107 +338,99 @@ for i in range(n_steps):
 
 display_video(frames)
 
-# %% [markdown]
-# ## Model modifications: adding leg MoCap sites using [PyMJCF](https://github.com/google-deepmind/dm_control/blob/main/dm_control/mjcf/README.md)
-# 
-# In addition to manipulating joint angles and controls, as we did above, the fly model itself can be modified. All aspects of the model (e.g., sizes of body parts, actuator strengths and types, degrees of freedom, masses, appearance, etc.) can be easily changed programmatically.
-# 
-# Let's consider a simple example of fly body modifications. Assume we've got a motion capture dataset tracking the positions of the fly leg joints and we would like to fit the fly model's leg poses to this data. One way of doing so will require referencing the corresponding keypoint positions in the fly legs, which in turn can be achieved by adding sites to the leg joints.
-# 
-# In contrast to loading and compiling the model to a `physics` object in one step as we did before, we will split this process into two steps. First, we will load the fly model as `mjcf_model`, a python object model for the underlying MuJoCo fly XML file, which we can interact with and modify programmatically (see `dm_control`'s [PyMJCF](https://github.com/google-deepmind/dm_control/blob/main/dm_control/mjcf/README.md)). Second, we will compile the _modified_ `mjcf_model` to a `physics` object.
 
-# %%
-# Site visualization parameters.
+# %% [markdown]
+# ## 模型修改：使用[PyMJCF](https://github.com/google-deepmind/dm_control/blob/main/main/main/dm_control/mjcf/mjcf/mheadme.md) 添加腿部 MoCap 位点
+# 
+# 除了操纵关节角度和控件外，就像我们上面所做的那样，可以修改果蝇模型本身。模型的所有方面（例如，身体部位的大小、执行器强度和类型、自由度、质量、外观等）可以通过编程方式轻松更改。
+# 
+# 让我们考虑一个简单的苍蝇身体修改的例子。假设我们有一个运动捕获数据集在跟踪果蝇腿关节的位置，我们想拟合果蝇模型的腿部姿势。这样做的一种方法将需要引用果蝇腿中相应的关键点位置，这又可以通过将位点添加到腿关节中来实现。
+# 
+# 与以前一样，将模型加载和编译到物理`physics`对象相比，我们将把这个过程分为两个步骤。
+# 首先，我们将加载果蝇模型为`mjcf_model`，这是基础 Mujoco Fly XML 文件的 Python 对象模型，我们可以通过编程方式进行互动并修改（请参阅`dm_control` 的 [PyMJCF](https://github.com/google-deepmind/dm_control/blob/main/dm_control/mjcf/README.md) ）。
+# 其次，我们将 _修改的_ `mjcf_model` 编译到物理`physics`对象。
+
+# 位点可视化参数。
 site_size = 3 * (0.005,)
 site_rgba = (0, 1, 0, 1)
 
-# Load MJCF model from the fly XML file.
+# 从果蝇 XML 文件加载 MJCF 模型。
 mjcf_model = mjcf.from_path(xml_path)
 
-# Make model modifications: add MoCap sites to legs. Don't compile model yet.
+# 进行模型修改：将 MoCap 位点添加到腿部。不要编译模型。
 
-# Loop over bodies and add sites to position (0, 0, 0) in each body, which will
-# correspond to leg joint locations.
+# 在身体上循环，并将位点添加到每个身体中的位置 (0, 0, 0)，这将对应于腿关节位置。
 for body in mjcf_model.find_all('body'):
     # If the body is a leg segment, add site to it.
+    # 如果身体是腿部的片段，请在其上添加位点。
     if any_substr_in_str(['coxa', 'femur', 'tibia', 'tarsus_', 'claw'], body.name):
         body.add('site', name=f'mocap_{body.name}', pos=(0, 0, 0),
                  size=site_size, group=0, rgba=site_rgba)
 
-# The mjcf_model manipulations are complete, can compile now.
+# mjcf_model 操作已经完成，现在可以编译。
 physics = mjcf.Physics.from_mjcf_model(mjcf_model)
 
 pixels = physics.render(camera_id=cameras['side'], **frame_size)
 PIL.Image.fromarray(pixels)
 
-# %% [markdown]
-# # Fly model in reinforcement learning environment
-# 
-# So far we've considered the fly model in a "bare" stand-alone configuration. One of the main applications of the model, however, is in the context of reinforcement learning (RL) environments -- training the fly to perform different tasks, such as locomotion and other behaviors. 
-# 
-# `flybody` contains several ready-to-train RL environments, all of which can be created with a single line of code. Below we provide one simple example as a starting point.
-# 
-# The `composer` RL environment classes encapsulate the same fly model `physics` object we've seen before, and all our previous "bare fly model" examples and manipulations apply to RL environments just the same. As before, see [dm_control](https://github.com/google-deepmind/dm_control/) for more details on `composer` RL environments.
 
 # %% [markdown]
-# ## Example: fly-on-ball RL environment
+# # 强化学习环境中的果蝇模型
 # 
-# This RL task models a biological experimental setup where a tethered fruit fly is required to walk on a floating ball. The image below show an actual setup for such an experiment (_image credit: Igor Siwanowicz, HHMI Janelia Research Campus_).
+# 到目前为止，我们一直是在“纯”独立配置的环境下对果蝇模型进行了研究。
+# 然而，该模型的主要应用之一是在强化学习（RL）环境当中训练果蝇来完成不同的任务，比如移动和其它行为。
 # 
-# To emulate this experimental setup, several task-specific modifications of the fly model would be required: (i) remove the root freejoint to fuse fly's thorax with the world to imitate tethering, (ii) replace the flat floor with a ball, and (iii) add an artificial observable to allow the policy to observe the rotational state of the ball. The ball position is fixed underneath the tethered fly, but it is free to rotate if a sufficient force is applied by fly's leg. The goal of the RL task is to train a policy to control the legs such that the ball rotates in a particular direction and at a particular speed.
+# `flybody`包含几个现成的RL环境，所有这些环境都可以使用一行代码创建。在下面，我们提供一个简单的示例作为起点。
 # 
-# See [task implementation](https://github.com/TuragaLab/flybody/blob/main/flybody/tasks/walk_on_ball.py) for details on the task-specific fly model modifications, reward caclulation, and RL environment step logic.
+# `composer` RL 环境类封装了我们之前见过的相同的飞行模型`physics`对象和所有之前的“裸果蝇模型”示例，并且操作适用于RL环境。如前所述，有关`composer` 强化学习环境的更多详细信息，请参见 [dm_control](https://github.com/google-deepmind/dm_control/) 。
 
-# %% [markdown]
-# ![fly-on-ball.jpg](attachment:fba018f9-7e55-4b53-a3a9-490a8b65384d.jpg)
+# ## 示例：在球上果蝇的强化学习环境
+# 
+# 这项强化学习任务对生物学实验设置进行了建模，其中需要束缚果蝇才能在浮动的球上行走。下图显示了此类实验的实际设置（_图片来源：Igor Siwanowicz，HHMI Janelia Research Campus_）。
+# 
+# 为了模仿这种实验设置，需要对飞行模型进行几种特定于任务的修改：
+# （i）移除根部自由关节，将果蝇的胸部与外部环境融合在一起，以实现类似束缚的效果，
+# （ii）用球体代替平坦的地板，
+# （iii）添加可观察的人造观察者，以允许策略观察球的旋转状态。
+# 球位置固定在束缚的苍蝇下方，但是如果果蝇的腿施加了足够的力，则可以自由旋转。
+# 强化学习任务的目的是训练控制腿部的策略，以使球以特定的方向和特定速度旋转。
+# 
+# 有关任务特定的果蝇模型修改、奖励计算以及强化学习环境的步骤逻辑等详细信息，请参阅 [任务实施](https://github.com/TuragaLab/flybody/blob/main/flybody/tasks/walk_on_ball.py) 部分。
 
-# %% [markdown]
-# The task environment can be created with the following convenient one-liner:
-
-# %%
+# 可以使用以下方便的单行小程序来创建任务环境：
 env = walk_on_ball()
 
-# %% [markdown]
-# We can inspect the RL environment and see the observations (policy inputs) and the actions (policy outputs). Note the extra observable `ball_qvel` we added specifically for this task. It measures the angular velocity of the ball rotation.
-
-# %%
+# 我们可以检查强化学习环境，并查看观测值（策略输入）和动作（策略输出）。请注意，我们专门为此任务添加了额外可观察的`ball_qvel`。它测量球旋转的角速度。
 env.observation_spec()
 
-# %% [markdown]
-# Action specifications: shape, data type, action names, and minima and maxima of the control ranges
-
-# %%
+# 动作规格：控制范围的形状、数据类型、动作名称以及最小和最大值
 env.action_spec()
 
-# %% [markdown]
-# Let's reset the RL environment and visualize the initial state: the fly is stationary in its default pose, the wings are folded, and the ball is not rotating. This would be the initial state of a training episode or inference on a trained policy.
 
-# %%
+# 让我们重置强化学习环境并将其可视化初始状态：果蝇在其默认姿势中静止不动，翅膀折叠，球不旋转。这将是训练轮次的初始状态或对训练有素策略的推断。
 timestep = env.reset()
 
 pixels = env.physics.render(camera_id=cameras['track1'], **frame_size)
 PIL.Image.fromarray(pixels)
 
-# %% [markdown]
-# ## Run episode with random actions
-# 
-# Let's run a short episode with a dummy policy outputting random actions. As we run the environment loop we'll render frames and, for the sake of example, collect the reward at each time step.
 
-# %%
+# %% [markdown]
+# ## 使用随机动作运行轮次
+# 
+# 让我们以一个虚拟策略输出随机动作来完成简短的轮次。在运行环境循环时，我们将渲染帧，并为了举例来说，在每个时间步骤中收集奖励。
 n_actions = env.action_spec().shape[0]
 
 def random_action_policy(observation):
-    del observation  # Not used by dummy policy.
+    del observation  # 虚拟策略不使用。
     random_action = np.random.uniform(-.5, .5, n_actions)
     return random_action
 
 frames = []
 rewards = []
 
-# Environment loop.
+# 环境循环。
 timestep = env.reset()
 for _ in range(200):
-    
     action = random_action_policy(timestep.observation)
     timestep = env.step(action)
     rewards.append(timestep.reward)
@@ -446,12 +440,8 @@ for _ in range(200):
 
 display_video(frames)
 
-# %%
 plt.plot(rewards)
 plt.xlabel('timestep')
 plt.ylabel('reward')
-
-# %%
-
 
 
