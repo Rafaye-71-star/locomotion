@@ -16,3 +16,5 @@ tf_keras
 chex
 sonnet
 graphs
+gym
+ffmpeg
