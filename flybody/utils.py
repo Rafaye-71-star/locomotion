@@ -2,11 +2,13 @@
 
 from typing import Sequence
 
+import numpy
 from IPython.display import HTML
 import matplotlib
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
+from acme.tf import utils as tf2_utils
 
 def rollout_and_render(env, policy, n_steps=100,
                        run_until_termination=False,
@@ -29,7 +31,13 @@ def rollout_and_render(env, policy, n_steps=100,
                 env.physics.render(camera_id=camera_id, **render_kwargs))
         frame = frame[0] if len(camera_ids) == 1 else frame  # Maybe squeeze.
         frames.append(frame)
-        action = policy(timestep.observation)
+        # 没有使用分布式策略，在这里补充TestPolicyWrapper里的一些操作
+        batched_observation = tf2_utils.add_batch_dim(timestep.observation)
+        distribution = policy(batched_observation)
+        action = distribution.mean()  # 不是测试模式（测试模式返回均值和方差）
+        if not (type(action) is numpy.float64):
+            action = action[0, :].numpy()  # Remove batch dimension.
+        # action = policy(timestep.observation)
         timestep = env.step(action)
     return frames
 

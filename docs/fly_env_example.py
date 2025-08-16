@@ -49,19 +49,20 @@ from flybody.tasks.task_utils import (
     get_random_policy,
     real2canonical,
 )
-from flybody.agents.utils_tf import TestPolicyWrapper
+# dm-reverb 仅支持 Linux
+# from flybody.agents.utils_tf import TestPolicyWrapper
 from flybody.utils import (
     display_video,
     rollout_and_render,
 )
 
-print(tf.__version__)
-print(tfp.__version__)
+# print(tf.__version__)
+# print(tfp.__version__)
 
 # 直接运行可以，但是在Interactive环境中，运行报错：
 # ValueError: The type 'tensorflow_probability.python.distributions.independent.Independent_ACTTypeSpec' has not been registered.  It must be registered before you load this object (typically by importing its module).
-flight_policy = tf.saved_model.load(flight_policy_path)
-print("Flight policy loaded successfully.")
+# flight_policy = tf.saved_model.load(flight_policy_path)
+# print("Flight policy loaded successfully.")
 
 
 # %%
@@ -166,7 +167,7 @@ display_video(frames)
 flight_policy = tf.saved_model.load(flight_policy_path)
 
 # 包装策略在测试时与非批次观察一起工作。
-flight_policy = TestPolicyWrapper(flight_policy)
+# flight_policy = TestPolicyWrapper(flight_policy)
 
 frames = rollout_and_render(env, flight_policy, run_until_termination=True,
                             camera_ids=1, **render_kwargs)
@@ -216,7 +217,7 @@ display_video(frames)
 # 让我们加载训练有素的策略，运行一个轮次并制作视频。
 
 walking_policy = tf.saved_model.load(walk_policy_path)
-walking_policy = TestPolicyWrapper(walking_policy)
+# walking_policy = TestPolicyWrapper(walking_policy)
 
 # 从数据集请求特定的（足够长）的步行轨迹。
 env.task.set_next_trajectory_index(idx=316)
@@ -247,112 +248,96 @@ PIL.Image.fromarray(pixels)
 # %% [markdown]
 # 让我们从初始轮次状态下从眼睛摄像机中呈现高分辨率的视图
 
-
-# %%
 pixels = eye_pixels_from_cameras(env.physics, **render_kwargs)
 PIL.Image.fromarray(pixels)
 
-# %% [markdown]
-# In the same initial episode state, the actual low-resolution view available to the fly through its observables looks more like this:
 
-# %%
+# %% [markdown]
+# 在同一初始轮次状态下，通过其可观察到的实际低分辨率视图看起来更像是这样：
+
 pixels = eye_pixels_from_observation(timestep, blow_factor=10)
 PIL.Image.fromarray(pixels)
 
-# %% [markdown]
-# Create dummy random-action policy, run episode, and make video.
 
-# %%
+# %% [markdown]
+# 创建虚拟随机动作策略，运行轮次并制作视频。
 random_policy = get_random_policy(env.action_spec())
 
 frames = vision_rollout_and_render(env, random_policy, **render_kwargs)
 display_video(frames)
 
+
 # %% [markdown]
-# Load a trained policy, run an episode, and make video:
-
-# %%
+# 加载训练有素的策略，运行一个轮次并制作视频：
 bumps_policy = tf.saved_model.load(vision_bumps_path)
-bumps_policy = TestPolicyWrapper(bumps_policy)
+# bumps_policy = TestPolicyWrapper(bumps_policy)
 
-# %%
 frames = vision_rollout_and_render(env, bumps_policy, **render_kwargs)
 display_video(frames)
 
+
+
 # %% [markdown]
-# # 4. Vision-guided flight through trench
+# # 4. 通过沟槽的视觉引导飞行
 # 
-# In this task, the fly is required to make it through a zigzagging trench without colliding with the trench walls. Touching the terrain or the trench walls terminates the episode. The fly has to learn to use vision to estimate its position within the trench and to maneuver to stay clear of the trench walls. The shape of the trench is randomly re-generated in each episode.
+# 在此任务中，需要果蝇通过锯齿状的沟槽，而不会与沟槽墙相撞。触摸地形或沟槽墙壁终止了轮次。果蝇必须学会利用视觉来估计其在沟槽中的位置，并进行操纵以远离沟沟槽。在每个轮次中都会随机重新生成沟槽的形状。
 
-# %% [markdown]
-# Let's create the "trench" task environment and visualize the initial state
-
-# %%
+# 让我们创建沟槽"trench"任务环境并可视化初始状态
 env = vision_guided_flight(wpg_pattern_path, bumps_or_trench='trench')
 env = wrappers.SinglePrecisionWrapper(env)
 env = wrappers.CanonicalSpecWrapper(env, clip=True)
 
-# %%
 _ = env.reset()
 pixels = env.physics.render(camera_id=6, **render_kwargs)
 PIL.Image.fromarray(pixels)
 
-# %% [markdown]
-# Let's add a new tracking camera for better trench task visualization:
 
-# %%
-# Find thorax and add tracking camera to it.
+# %% [markdown]
+# 让我们添加一个新的跟踪摄像头，以实现更好的沟通任务可视化：
+
+# 找到胸部并在其中添加跟踪摄像头。
 thorax = env.task.root_entity.mjcf_model.find('body', 'walker/thorax')
 _ = thorax.add('camera', name='rear', mode='trackcom',
                pos=(-1.566, 0.037, -0.021),
                xyaxes=(-0.014, -1, 0, -0.012, 0, 1))
 
-# %% [markdown]
-# Visualize the initial state with the new camera:
-
-# %%
+# 用新相机可视化初始状态：
 timestep = env.reset()
 trench_camera_id = env.physics.model.name2id('walker/rear', 'camera')
 pixels = env.physics.render(camera_id=trench_camera_id, **render_kwargs)
 PIL.Image.fromarray(pixels)
 
-# %% [markdown]
-# Let's render a high-resolution view from the eye cameras in the initial episode state:
 
-# %%
+# %% [markdown]
+# 让我们从初始轮次中从眼摄像机中呈现高分辨率的视角：
+
 pixels = eye_pixels_from_cameras(env.physics, **render_kwargs)
 PIL.Image.fromarray(pixels)
 
-# %% [markdown]
-# And the corresponding low-resolution view used by the fly model:
 
-# %%
+# %% [markdown]
+# 以及果蝇模型使用的相应低分辨率视图：
 pixels = eye_pixels_from_observation(timestep, blow_factor=10)
 PIL.Image.fromarray(pixels)
 
 # %% [markdown]
-# As before, let's run an episode with the random-action policy:
+# 和以前一样，让我们以随机动作策略进行一个轮次：
 
-# %%
 random_policy = get_random_policy(env.action_spec())
 
 frames = vision_rollout_and_render(
     env, random_policy, camera_id=trench_camera_id, **render_kwargs)
 display_video(frames)
 
+
 # %% [markdown]
-# Let's load a trained policy and run an episode:
+# 让我们加载训练有素的策略并进行一个轮次：
 
-# %%
 trench_policy = tf.saved_model.load(vision_trench_path)
-trench_policy = TestPolicyWrapper(trench_policy)
+# trench_policy = TestPolicyWrapper(trench_policy)
 
-# %%
 frames = vision_rollout_and_render(
     env, trench_policy, camera_id=trench_camera_id, **render_kwargs)
 display_video(frames)
-
-# %% [markdown]
-# Thank you! We are happy you are interested in our fly model:)
 
 
