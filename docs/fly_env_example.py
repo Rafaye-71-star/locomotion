@@ -82,6 +82,8 @@ def blow(x, repeats=2):
 def vision_rollout_and_render(env, policy, camera_id=1,
                               eye_blow_factor=5, **render_kwargs):
     """Run vision-guided flight episode and render frames, including eyes."""
+    from acme.tf import utils as tf2_utils
+    import numpy
     frames = []
     timestep = env.reset()
     # Run full episode until it ends.
@@ -94,7 +96,12 @@ def vision_rollout_and_render(env, policy, camera_id=1,
         pixels[0:eyes.shape[0], 0:eyes.shape[1], :] = eyes
         frames.append(pixels)
         # Step environment.
-        action = policy(timestep.observation)
+        # 没有使用分布式策略，在这里补充TestPolicyWrapper里的一些操作
+        batched_observation = tf2_utils.add_batch_dim(timestep.observation)
+        distribution = policy(batched_observation)
+        action = distribution.mean()  # 不是测试模式（测试模式返回均值和方差）
+        if not (type(action) is numpy.float64):
+            action = action[0, :].numpy()  # Remove batch dimension.
         timestep = env.step(action)
     return frames
 
@@ -132,6 +139,10 @@ def eye_pixels_from_cameras(physics, **render_kwargs):
 
 # 用于渲染的帧宽度和高度。
 render_kwargs = {'width': 640, 'height': 480}
+
+
+
+
 
 # %% [markdown]
 # # 1. 飞行模仿环境
