@@ -7,6 +7,7 @@ from IPython.display import HTML
 import matplotlib
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
+matplotlib.use('TkAgg')
 
 from acme.tf import utils as tf2_utils
 
@@ -55,13 +56,13 @@ def display_video(frames, framerate=30):
     """
     height, width, _ = frames[0].shape
     dpi = 70
-    orig_backend = matplotlib.get_backend()
-    matplotlib.use(
-        'Agg')  # Switch to headless 'Agg' to inhibit figure rendering.
+    # orig_backend = matplotlib.get_backend()
+    # matplotlib.use(
+    #     'TkAgg')  # Switch to headless 'Agg' to inhibit figure rendering.
     fig, ax = plt.subplots(1, 1, figsize=(width / dpi, height / dpi), dpi=dpi)
-    plt.close(
-        'all')  # Figure auto-closing upon backend switching is deprecated.
-    matplotlib.use(orig_backend)  # Switch back to the original backend.
+    # plt.close(
+    #    'all')  # Figure auto-closing upon backend switching is deprecated.
+    # matplotlib.use(orig_backend)  # Switch back to the original backend.
     ax.set_axis_off()
     ax.set_aspect('equal')
     ax.set_position([0, 0, 1, 1])
@@ -78,7 +79,9 @@ def display_video(frames, framerate=30):
                                    interval=interval,
                                    blit=True,
                                    repeat=False)
-    return HTML(anim.to_html5_video())
+    plt.show()
+    plt.close()  # 需要手动关闭图形窗口才能运行下一个图
+    # return HTML(anim.to_html5_video())
 
 
 def parse_mujoco_camera(s: str):
