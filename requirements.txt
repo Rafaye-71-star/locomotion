@@ -10,11 +10,11 @@ PyQt5==5.15.10
 mediapy
 dm_control
 h5py
-tensorflow
-tensorflow_probability
+tensorflow==2.8.0
+tensorflow-probability==0.16.0
 tf_keras
 chex
 sonnet
 graphs
 gym
-ffmpeg
+launchpad

@@ -33,7 +33,6 @@ import PIL.ImageDraw
 
 import tensorflow as tf
 import tensorflow_probability as tfp
-import tensorflow_probability
 from acme import wrappers  # pip install git+https://github.com/deepmind/acme.git
 
 from flybody.fly_envs import (
@@ -50,6 +49,8 @@ from flybody.utils import (
     display_video,
     rollout_and_render,
 )
+
+flight_policy = tf.saved_model.load(flight_policy_path)
 
 # %%
 # 防止 TensorFlow 窃取所有 GPU 内存。
@@ -127,7 +128,6 @@ render_kwargs = {'width': 640, 'height': 480}
 # 在此任务中，需要果蝇模型来通过匹配其质量中心位置和身体方向来跟踪真实参考果蝇的飞行轨迹。翅膀运动由策略网络和翅膀模式发生器的组合控制。对单个策略进行了训练，可以跟踪飞行数据集中的所有轨迹。
 
 # 让我们创建飞行模仿环境并可视化初始状态。
-
 env = flight_imitation(ref_flight_path,
                        wpg_pattern_path,
                        terminal_com_dist=float('inf'))
@@ -151,81 +151,80 @@ display_video(frames)
 
 # %% [markdown]
 # 加载训练有素的策略，运行轮次并制作视频。
-
+# import tensorflow_probability
+# from tensorflow_probability.python.distributions.independent import *
 flight_policy = tf.saved_model.load(flight_policy_path)
-# %%
+
 # 包装策略在测试时与非批次观察一起工作。
 flight_policy = TestPolicyWrapper(flight_policy)
-
 
 frames = rollout_and_render(env, flight_policy, run_until_termination=True,
                             camera_ids=1, **render_kwargs)
 display_video(frames)
 
 
+
+
 # %% [markdown]
-# # 2. Walking imitation environment
+# # 2. 步行模仿环境
 # 
-# In this task, the fly model is required to track walking trajectories of real reference flies by matching their (i) center-of-mass position, (ii) body orientation, and (iii) detailed leg movement. A single policy is trained to track all trajectories in the walking dataset.
+# 在此任务中，需要果蝇模型来通过匹配（i）质量中心位置，（ii）身体方向以及（iii）详细的腿部运动来跟踪真实参考果蝇的步行轨迹。对单个策略进行了训练，可以跟踪步行数据集中的所有轨迹。
 
-# %% [markdown]
-# Let's create walking environment and visualize the initial state.
+# 让我们创建步行环境并可视化初始状态。
 
-# %%
 env = walk_imitation(ref_path=ref_walking_path,
                      terminal_com_dist=float('inf'))
 env = wrappers.SinglePrecisionWrapper(env)
 env = wrappers.CanonicalSpecWrapper(env, clip=True)
 
-# %%
 _ = env.reset()
 pixels = env.physics.render(camera_id=1, **render_kwargs)
 PIL.Image.fromarray(pixels)
 
-# %% [markdown]
-# Create a dummy random-action policy, run an episode, and make video. The gray "ghost" fly indicates the reference fly position. Here, we will create a slightly different version of the random-action policy by shifting the random actions to make the video pretty.
 
-# %%
+# %% [markdown]
+# 创建虚拟随机行动策略，运行一个轮次并制作视频。灰色“幽灵”果蝇表示参考果蝇位置。在这里，我们将通过移动随机操作使视频变得漂亮来创建一个略有不同的随机效果策略。
+
 _random_policy = get_random_policy(env.action_spec(),
                                    minimum=-.5, maximum=.5)
 def random_policy(observation):
     action = _random_policy(observation)
-    # Transform random action centered around zero to canonical representation
-    # to match CanonicalSpecWrapper we added to the walking environment above.
+    # 将以零为中心的随机动作转换为规范表示，以匹配我们添加到上面的步行环境中的 CanonicalSpecWrapper。
     action = real2canonical(action, env._environment.action_spec())
     return action
 
-# Request a particular (sufficiently long) walking trajectory from dataset.
+# 从数据集请求特定的（足够长）的步行轨迹。
 env.task.set_next_trajectory_index(idx=316)
 
 frames = rollout_and_render(env, random_policy, run_until_termination=True,
                             camera_ids=2, **render_kwargs)
 display_video(frames)
 
-# %% [markdown]
-# Let's load a trained policy, run an episode, and make video.
 
-# %%
+
+# %% [markdown]
+# 让我们加载训练有素的策略，运行一个轮次并制作视频。
+
 walking_policy = tf.saved_model.load(walk_policy_path)
 walking_policy = TestPolicyWrapper(walking_policy)
 
-# %%
-# Request a particular (sufficiently long) walking trajectory from dataset.
+# 从数据集请求特定的（足够长）的步行轨迹。
 env.task.set_next_trajectory_index(idx=316)
 
 frames = rollout_and_render(env, walking_policy, run_until_termination=True,
                             camera_ids=2, **render_kwargs)
 display_video(frames)
 
+
+
+
 # %% [markdown]
-# # 3. Vision-guided flight over uneven terrain ("bumps")
+# # 3. 在不规则地形上（“颠簸”）的视觉引导飞行
 # 
-# In this task, the fly model is required to fly over an uneven sine-like terrain while maintaining a constant z-offset (height) w.r.t. the current terrain elevation. The model does not have direct access to its flight height. Instead, it has to learn to use vision to estimate the current height and to adjust it to match the current terrain elevation. Collision with terrain terminates the episode. The terrain shape is randomly re-generated in each episode.
+# 在此任务中，需要果蝇模型在保持不规则的正弦状地形上，同时关于当前的地形海拔保持恒定的 z 偏移（高度） 。该模型无法直接访问其飞行高度。取而代之的是，它必须学会使用视觉来估计当前高度并调整它以匹配当前的地形高程。
+# 与地形碰撞终止了这一轮次。每个轮次都会随机重新生成地形形状。
 
-# %% [markdown]
-# Let's create "bumps" vision task environment and visualize the initial state.
-
-# %%
+# 让我们创建“颠簸”视觉任务环境并可视化初始状态。
 env = vision_guided_flight(wpg_pattern_path, bumps_or_trench='bumps')
 env = wrappers.SinglePrecisionWrapper(env)
 env = wrappers.CanonicalSpecWrapper(env, clip=True)
@@ -234,8 +233,10 @@ timestep = env.reset()
 pixels = env.physics.render(camera_id=1, **render_kwargs)
 PIL.Image.fromarray(pixels)
 
+
 # %% [markdown]
-# Let's render a high-resolution view from the eye cameras in the initial episode state
+# 让我们从初始轮次状态下从眼睛摄像机中呈现高分辨率的视图
+
 
 # %%
 pixels = eye_pixels_from_cameras(env.physics, **render_kwargs)
