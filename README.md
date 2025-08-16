@@ -1,6 +1,6 @@
-# Human Locomotion
+# 人类运动
 
-The modelling of human locomotion include body geometry (skeleton), body physics (muscle), body-environment interactions (tactile); imitation learning (video-control; walking and running with RL), vision-guided walking (visual navigation; unreal).
+人类运动的建模包括身体几何形状（骨骼），身体物理（肌肉），身体环境相互作用（触觉）；模仿学习（视频到控制；与RL步行和跑步），视觉指导的步行（视觉导航；虚幻引擎）。
 
 ```mermaid
 graph LR
@@ -16,13 +16,13 @@ graph LR
 ```
 
 
-## Configuration
+## 配置
 ```shell
-# create virtual python environment
+# 创建虚拟Python环境
 conda create -n locomotion -c conda-forge python=3.10 pip ipython cudatoolkit=11.8.0
-# activate virtual environment
+# 激活虚拟环境
 conda activate locomotion
-# install dependence
+# 安装依赖
 pip install -r requirements.txt
 # deactivate virtual environment
 # conda deactivate locomotion
@@ -30,15 +30,15 @@ pip install -r requirements.txt
 # conda remove -n locomotion --all
 ```
 
-## Start flybody
+## 开始 flybody
 
-The fruit fly body model lives in [this directory][fly-home]. To visualize it, you can drag-and-drop `fruitfly.xml` or `floor.xml` to [MuJoCo](https://github.com/google-deepmind/mujoco/releases)'s `simulate` viewer.
+果蝇身体模型位于 [这个目录][fly-home] 中。为了使其可视化，您可以拖放 fruitfly.xml`或`floes.xml` 到 [MuJoCo]（https://github.com/google-deepmind/mujoco/releases）的`simulate` 查看器。
 
-Interacting with the fly via [fly.demo.py](fly_demo.py) .
+通过 [fly.demo.py](fly_demo.py) 与果蝇进行交互。
 
-The quickest way to get started with `flybody` is to take a look at a [tutorial notebook][tutorial] or [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)][tutorial-colab].
+开始使用 `flybody` 的最快方法是看 [教程](docs) 。
 
-Also, [this notebook][envs] shows examples of the flight, walking, and vision-guided flight RL task environments. 
+另外，[果蝇环境示例的脚本](docs/fly_env_example.py) 显示了飞行、步行和视觉引导的飞行强化学习任务环境的示例。
 
 To train the fly, try the [distributed RL training script][ray-script], which uses [Ray][ray] to parallelize the [DMPO][dmpo] agent training.
 
@@ -48,7 +48,6 @@ To train the fly, try the [distributed RL training script][ray-script], which us
 [tutorial]: https://github.com/OpenHUTB/locomotion/blob/master/docs/getting-started.ipynb
 [tutorial-colab]: https://colab.research.google.com/github/OpenHUTB/locomotion/blob/master/docs/getting-started.ipynb
 [dmpo]: https://github.com/google-deepmind/acme/tree/master/acme/agents/tf/dmpo
-[envs]: https://github.com/OpenHUTB/locomotion/blob/master/docs/fly-env-examples.ipynb
 [ray-script]: https://github.com/OpenHUTB/locomotion/blob/master/flybody/train_dmpo_ray.py
 [paper]: https://www.nature.com/articles/s41586-025-09029-4
 [preprint]: https://www.biorxiv.org/content/10.1101/2024.03.11.584515v2

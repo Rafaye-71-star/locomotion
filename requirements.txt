@@ -5,8 +5,14 @@ gymnasium==0.28.1
 opencv-python==4.11.0.86
 torch==1.13.1
 stable_baselines3==2.0.0
-networkx==2.6.3
+networkx
 PyQt5==5.15.10
 mediapy
 dm_control
 h5py
+tensorflow
+tensorflow_probability
+tf_keras
+chex
+sonnet
+graphs
