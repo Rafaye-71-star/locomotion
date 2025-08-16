@@ -55,6 +55,12 @@ pip install -r requirements.txt
    pip install "flybody[ray] @ git+https://github.com/TuragaLab/flybody.git"
    ```
 
+注意：dm-reverb只支持Linux。
+
+2. 执行测试
+```shell
+pytest tests
+```
 
 
 ## Hutb 中行人的运行
@@ -67,7 +73,7 @@ python Carla_Pedestrian_PPO.py
 ```shell
 python Carla_Pedestrian_System_GUI.py
 ```
-Select `Initialize Environment`, make sure the start and end points are in the csv, then click `Start Training`.
+选择“初始化环境”，请确保起点和终点位于CSV中，然后单击“开始训练”。
 
 
 

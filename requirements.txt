@@ -14,7 +14,7 @@ tensorflow==2.8.0
 tensorflow-probability==0.16.0
 tf_keras
 chex
-sonnet
+dm-sonnet
 graphs
 gym
 launchpad

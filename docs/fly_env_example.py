@@ -13,18 +13,23 @@
 # 3. 在下面的代码中指定数据和策略文件的路径
 
 # %%
+import os
+
+cur_dir = os.path.split(os.path.realpath(__file__))[0]
+
 # wingbeat 模式发生器（pattern generator）的基线模式。
-wpg_pattern_path = '../data/wing_pattern_fmech.npy'
+wpg_pattern_path = os.path.join(cur_dir, 'data/wing_pattern_fmech.npy')
 
 # 飞行和步行参考数据。
-ref_flight_path = '../data/flight-dataset_saccade-evasion_augmented.hdf5'
-ref_walking_path = '../data/walking-dataset_female-only_snippets-16252_trk-files-0-9.hdf5'
+ref_flight_path = os.path.join(cur_dir, 'data/flight-dataset_saccade-evasion_augmented.hdf5')
+ref_walking_path = 'data/walking-dataset_female-only_snippets-16252_trk-files-0-9.hdf5'
 
 # 训练有素的策略。
-flight_policy_path = '../data/policy/flight'
-walk_policy_path = '../data/policy/walking'
-vision_bumps_path = '../data/policy/vision-bumps'
-vision_trench_path = '../data/policy/vision-trench'
+#flight_policy_path = '../data/policy/flight'
+flight_policy_path = os.path.split(os.path.realpath(__file__))[0] + '\\data\\policy\\flight'
+walk_policy_path = 'data/policy/walking'
+vision_bumps_path = 'data/policy/vision-bumps'
+vision_trench_path = 'data/policy/vision-trench'
 
 
 # # 包导入
@@ -44,13 +49,20 @@ from flybody.tasks.task_utils import (
     get_random_policy,
     real2canonical,
 )
-# from flybody.agents.utils_tf import TestPolicyWrapper
+from flybody.agents.utils_tf import TestPolicyWrapper
 from flybody.utils import (
     display_video,
     rollout_and_render,
 )
 
+print(tf.__version__)
+print(tfp.__version__)
+
+# 直接运行可以，但是在Interactive环境中，运行报错：
+# ValueError: The type 'tensorflow_probability.python.distributions.independent.Independent_ACTTypeSpec' has not been registered.  It must be registered before you load this object (typically by importing its module).
 flight_policy = tf.saved_model.load(flight_policy_path)
+print("Flight policy loaded successfully.")
+
 
 # %%
 # 防止 TensorFlow 窃取所有 GPU 内存。
@@ -61,8 +73,6 @@ for device in physical_devices:
 
 # %% [markdown]
 # # 有用的渲染功能
-
-# %%
 def blow(x, repeats=2):
     """Repeat columns and rows requested number of times."""
     return np.repeat(np.repeat(x, repeats, axis=0), repeats, axis=1)
