@@ -1,5 +1,116 @@
 # 人的移动
 
+[分层世界模型作为视觉全身类人生物控制器](https://www.nicklashansen.com/rlpuppeteer) 
+
+
+<img src="assets/0.png" width="100%"></br>
+
+[[网页]](https://www.nicklashansen.com/rlpuppeteer) [[论文]](https://arxiv.org/abs/2405.18418) [[模型]](https://drive.google.com/drive/folders/1cgt9HzquO5mcB71Krv0C0mD10scfMquO?usp=sharing)
+
+----
+
+## Overview
+
+我们提出了木偶（Puppeteer），这是一种通过视觉观察的全身人类人体控制的分层世界模型。我们的方法会产生自然和类似人类的动作，而无需任何奖励设计或技能基元，并穿越了具有挑战性的地形。
+
+<img src="assets/1.png" width="100%" style="max-width: 640px"><br/>
+
+This repository contains code for training and evaluating both low-level (tracking) and high-level (puppeteering) world models. We open-source model checkpoints for both levels of the hierarchy, so that you can get started without training any models yourself. Model checkpoints are available for download [here](https://drive.google.com/drive/folders/1cgt9HzquO5mcB71Krv0C0mD10scfMquO?usp=sharing).
+
+----
+
+## 入门
+
+您将需要一台带有GPU（> = 24 GB内存）的机器进行训练； CPU和RAM使用微不足道。我们提供一个`Dockerfile`，以便于安装。您可以通过运行来构建Docker图像
+
+```
+cd docker && docker build . -t <user>/puppeteer:1.0.0
+```
+
+此 Docker 镜像包含运行训练和推理所需的所有依赖项。
+
+如果您希望手动安装依赖项，请通过运行以下`conda`命令开始安装依赖项：
+
+```
+conda env create -f docker/environment.yaml
+```
+
+根据您现有的系统软件包，您可能需要安装其他依赖项。有关推荐的系统软件包列表，请参见`docker/Dockerfile`。
+
+----
+
+## Supported tasks
+
+This codebase currently supports **8** whole-body control tasks for the CMU Humanoid model, implemented in MuJoCo using DMControl. The tasks are defined as follows:
+
+| task | vision
+| --- | --- |
+| stand | N
+| walk | N
+| run | N
+| corridor | Y
+| hurdles-corridor | Y
+| gaps-corridor | Y
+| walls-corridor  | Y
+| stairs-corridor  | Y
+
+可以通过指定`train.py` and`evaluation.py`的`task`参数来运行。
+
+## 示例用法
+
+我们提供了有关如何评估我们提供的Puppeteer模型检查点的示例，以及如何在下面训练自己的木偶代理。
+
+### 评估
+
+请参阅下面有关如何评估下载的低级和高级检查点的示例。
+
+```shell
+python evaluate.py task=corridor low_level_fp=/path/to/tracking.pt checkpoint=/path/to/corridor-1.pt
+# python evaluate.py task=corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/corridor-1.pt
+python evaluate.py task=gaps-corridor low_level_fp=/path/to/tracking.pt checkpoint=/path/to/gaps-corridor-1.pt
+# python evaluate.py task=gaps-corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/gaps-corridor-1.pt
+```
+
+所有高级检查点都经过相同的低级检查点训练。有关参数的完整列表，请参见`config.yaml`。
+
+
+### Training
+
+See below examples on how to train low-level and high-level world models for Puppeteer. We recommend configuring [Weights and Biases](https://wandb.ai) (`wandb`) in `config.yaml` to track training progress.
+
+```
+$ python train.py task=tracking
+$ python train.py task=walk low_level_fp=/path/to/tracking.pt
+$ python train.py task=corridor low_level_fp=/path/to/tracking.pt
+```
+
+We recommend using default hyperparameters for all tasks. See `config.yaml` for a full list of arguments.
+
+----
+
+## Citation
+
+If you find our work useful, please consider citing our paper as follows:
+
+```
+@misc{hansen2024hierarchical,
+  title={Hierarchical World Models as Visual Whole-Body Humanoid Controllers}, 
+  author={Nicklas Hansen, Jyothir S V, Vlad Sobal, Yann LeCun, Xiaolong Wang, Hao Su},
+  eprint={2405.18418},
+  archivePrefix={arXiv},
+  primaryClass={cs.LG},
+  year={2024}
+}
+```
+
+----
+
+## Contributing
+
+You are very welcome to contribute to this project. Feel free to open an issue or pull request if you have any suggestions or bug reports, but please review our [guidelines](CONTRIBUTING.md) first.
+
+----
+
 ## myochallenge_2025eval
 
 [submit tutorials](https://github.com/MyoHub/myochallenge_2025eval/blob/main/tutorials/GHaction_Submission.md)
@@ -13,6 +124,14 @@
 4. Sample policy from TRPO baseline
 5. Winning solution by @NNAISENSE
 
+
+## FAQ
+###### ImportError: ('Unable to load EGL library', "Could not find module 'EGL'
+> `pip install glfw==2.6.4`
+> 
+> 使用 conda 安装 environment.yaml 中的 dependencies
+> 
+> `conda install -c conda-forge 指定版本`
 
 ## 参考
 
