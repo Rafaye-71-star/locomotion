@@ -9,7 +9,6 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
-from acme.tf import utils as tf2_utils
 
 def rollout_and_render(env, policy, n_steps=100,
                        run_until_termination=False,
@@ -18,6 +17,7 @@ def rollout_and_render(env, policy, n_steps=100,
     """Rollout policy for n_steps or until termination, and render video.
     Rendering is possible from multiple cameras; in that case, each element in
     returned `frames` is a list of cameras."""
+    from acme.tf import utils as tf2_utils
     if isinstance(camera_ids, int):
         camera_ids = [camera_ids]
     timestep = env.reset()
