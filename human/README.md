@@ -9,13 +9,13 @@
 
 ----
 
-## Overview
+## 概述
 
 我们提出了木偶（Puppeteer），这是一种通过视觉观察的全身人类人体控制的分层世界模型。我们的方法会产生自然和类似人类的动作，而无需任何奖励设计或技能基元，并穿越了具有挑战性的地形。
 
 <img src="assets/1.png" width="100%" style="max-width: 640px"><br/>
 
-This repository contains code for training and evaluating both low-level (tracking) and high-level (puppeteering) world models. We open-source model checkpoints for both levels of the hierarchy, so that you can get started without training any models yourself. Model checkpoints are available for download [here](https://drive.google.com/drive/folders/1cgt9HzquO5mcB71Krv0C0mD10scfMquO?usp=sharing).
+该存储库包含用于训练和评估低级（跟踪）和高级（操纵）世界模型的代码。我们开放两个层次结构的模型检查点，以便您可以在不训练任何模型的情况下入门。模型检查点可在 [此处](https://drive.google.com/drive/folders/1cgt9HzquO5mcB71Krv0C0mD10scfMquO?usp=sharing) 下载。
 
 ----
 
@@ -39,11 +39,11 @@ cd docker && docker build . -t <user>/puppeteer:1.0.0
 
 ----
 
-## Supported tasks
+## 支持的任务
 
-This codebase currently supports **8** whole-body control tasks for the CMU Humanoid model, implemented in MuJoCo using DMControl. The tasks are defined as follows:
+该代码库当前支持**8**个使用 DMControl 在 Mujoco 实现的 CMU 类人体模型的全身控制任务。任务定义如下：
 
-| task | vision
+| 任务 | vision
 | --- | --- |
 | stand | N
 | walk | N
@@ -75,42 +75,25 @@ python evaluate.py task=gaps-corridor low_level_fp=/path/to/tracking.pt checkpoi
 所有高级检查点都经过相同的低级检查点训练。有关参数的完整列表，请参见`config.yaml`。
 
 
-### Training
+### 训练
 
-See below examples on how to train low-level and high-level world models for Puppeteer. We recommend configuring [Weights and Biases](https://wandb.ai) (`wandb`) in `config.yaml` to track training progress.
+请参阅下面的示例，介绍了如何训练木偶的低级和高级世界模型。我们建议在`config.yaml`中配置[权重和偏置](https://wandb.ai) (`wandb`) 以跟踪训练进度。
+
+
+配置数据集
 
 ```
 $ python train.py task=tracking
-$ python train.py task=walk low_level_fp=/path/to/tracking.pt
-$ python train.py task=corridor low_level_fp=/path/to/tracking.pt
+$ python train.py task=walk low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt
+$ python train.py task=corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt
 ```
 
-We recommend using default hyperparameters for all tasks. See `config.yaml` for a full list of arguments.
+我们推荐所有任务使用默认的超参数。参数的完整链表请查看`config.yaml`。
+
+
 
 ----
 
-## Citation
-
-If you find our work useful, please consider citing our paper as follows:
-
-```
-@misc{hansen2024hierarchical,
-  title={Hierarchical World Models as Visual Whole-Body Humanoid Controllers}, 
-  author={Nicklas Hansen, Jyothir S V, Vlad Sobal, Yann LeCun, Xiaolong Wang, Hao Su},
-  eprint={2405.18418},
-  archivePrefix={arXiv},
-  primaryClass={cs.LG},
-  year={2024}
-}
-```
-
-----
-
-## Contributing
-
-You are very welcome to contribute to this project. Feel free to open an issue or pull request if you have any suggestions or bug reports, but please review our [guidelines](CONTRIBUTING.md) first.
-
-----
 
 ## myochallenge_2025eval
 
