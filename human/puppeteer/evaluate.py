@@ -18,6 +18,8 @@ from tdmpc2 import TDMPC2
 
 torch.backends.cudnn.benchmark = True
 
+print(torch.cuda.is_available())
+
 
 # 添加一个ICD配置，以便GLVND可以拾取NVIDIA EGL驱动程序。
 # 这通常是作为NVIDIA驱动程序包的一部分安装的，但是Colab内核不会通过APT安装其驱动程序，因此ICD丢失了。

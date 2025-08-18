@@ -21,6 +21,14 @@ This repository contains code for training and evaluating both low-level (tracki
 
 ## 入门
 
+
+使用项目的 [requirementx.txt](../requirements.txt) 安装软件包。
+
+注意：安装从 [链接](https://download.pytorch.org/whl/cu126/torch-2.8.0%2Bcu126-cp310-cp310-win_amd64.whl) 下载的pytorch的GPU版本
+```shell
+pip install torch-2.8.0%2Bcu126-cp310-cp310-win_amd64.whl
+```
+
 您将需要一台带有GPU（> = 24 GB内存）的机器进行训练； CPU和RAM使用微不足道。我们提供一个`Dockerfile`，以便于安装。您可以通过运行来构建Docker图像
 
 ```
@@ -28,14 +36,6 @@ cd docker && docker build . -t <user>/puppeteer:1.0.0
 ```
 
 此 Docker 镜像包含运行训练和推理所需的所有依赖项。
-
-如果您希望手动安装依赖项，请通过运行以下`conda`命令开始安装依赖项：
-
-```
-conda env create -f docker/environment.yaml
-```
-
-根据您现有的系统软件包，您可能需要安装其他依赖项。有关推荐的系统软件包列表，请参见`docker/Dockerfile`。
 
 ----
 
@@ -67,8 +67,9 @@ This codebase currently supports **8** whole-body control tasks for the CMU Huma
 ```shell
 python evaluate.py task=corridor low_level_fp=/path/to/tracking.pt checkpoint=/path/to/corridor-1.pt
 # python evaluate.py task=corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/corridor-1.pt
-python evaluate.py task=gaps-corridor low_level_fp=/path/to/tracking.pt checkpoint=/path/to/gaps-corridor-1.pt
-# python evaluate.py task=gaps-corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/gaps-corridor-1.pt
+python evaluate.py task=gaps-corridor low_level_fp=/path/to/tracking.pt checkpoint=/path/to/gaps-1.pt
+# python evaluate.py task=gaps-corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/gaps-1.pt
+# 下载的模型位于：D:/work/workspace/locomotion/human/model/gaps-corridor-1.pt
 ```
 
 所有高级检查点都经过相同的低级检查点训练。有关参数的完整列表，请参见`config.yaml`。
