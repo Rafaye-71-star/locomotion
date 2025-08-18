@@ -1,4 +1,4 @@
-"""Utility functions."""
+"""实用功能。"""
 
 from typing import Sequence
 
@@ -17,6 +17,7 @@ def rollout_and_render(env, policy, n_steps=100,
     """Rollout policy for n_steps or until termination, and render video.
     Rendering is possible from multiple cameras; in that case, each element in
     returned `frames` is a list of cameras."""
+    # 放在函数外会在 github action 中没有 GPU，导致 import tf 失败
     from acme.tf import utils as tf2_utils
     if isinstance(camera_ids, int):
         camera_ids = [camera_ids]
