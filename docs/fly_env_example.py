@@ -22,14 +22,14 @@ wpg_pattern_path = os.path.join(cur_dir, 'data/wing_pattern_fmech.npy')
 
 # 飞行和步行参考数据。
 ref_flight_path = os.path.join(cur_dir, 'data/flight-dataset_saccade-evasion_augmented.hdf5')
-ref_walking_path = 'data/walking-dataset_female-only_snippets-16252_trk-files-0-9.hdf5'
+ref_walking_path = os.path.join(cur_dir, 'data/walking-dataset_female-only_snippets-16252_trk-files-0-9.hdf5')
 
 # 训练有素的策略。
 #flight_policy_path = '../data/policy/flight'
 flight_policy_path = os.path.split(os.path.realpath(__file__))[0] + '\\data\\policy\\flight'
-walk_policy_path = 'data/policy/walking'
-vision_bumps_path = 'data/policy/vision-bumps'
-vision_trench_path = 'data/policy/vision-trench'
+walk_policy_path = os.path.join(cur_dir, 'data/policy/walking')
+vision_bumps_path = os.path.join(cur_dir, 'data/policy/vision-bumps')
+vision_trench_path = os.path.join(cur_dir, 'data/policy/vision-trench')
 
 
 # # 包导入

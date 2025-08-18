@@ -3,7 +3,7 @@
 from typing import Sequence
 
 import numpy
-from IPython.display import HTML
+# from IPython.display import HTML
 import matplotlib
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
@@ -36,7 +36,7 @@ def rollout_and_render(env, policy, n_steps=100,
         batched_observation = tf2_utils.add_batch_dim(timestep.observation)
         distribution = policy(batched_observation)
         action = distribution.mean()  # 不是测试模式（测试模式返回均值和方差）
-        if not (type(action) is numpy.float64):
+        if type(action) is not numpy.float64:
             action = action[0, :].numpy()  # Remove batch dimension.
         # action = policy(timestep.observation)
         timestep = env.step(action)
@@ -81,6 +81,7 @@ def display_video(frames, framerate=30):
                                    repeat=False)
     plt.show()
     plt.close()  # 需要手动关闭图形窗口才能运行下一个图
+    print(anim)
     # return HTML(anim.to_html5_video())
 
 
