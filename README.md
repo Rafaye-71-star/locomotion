@@ -59,7 +59,9 @@ pip install -r requirements.txt
 
 2. 执行测试
 ```shell
-pytest tests
+ruff check flybody/
+pytest tests/
+pytest tests/test-tf.py
 ```
 
 

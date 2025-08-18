@@ -5,9 +5,9 @@ from typing import Sequence
 import numpy
 # from IPython.display import HTML
 import matplotlib
-import matplotlib.animation as animation
-import matplotlib.pyplot as plt
 matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 from acme.tf import utils as tf2_utils
 
