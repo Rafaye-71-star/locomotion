@@ -15,7 +15,6 @@ dependencies = [
     "mediapy",
     "tensorflow",
     "tensorflow-probability",
-    "dm-reverb",
     "protobuf",
 ]
 requires-python = ">=3.10"
