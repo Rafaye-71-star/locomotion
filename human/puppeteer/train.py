@@ -22,16 +22,16 @@ torch.backends.cudnn.benchmark = True
 @hydra.main(config_name='config', config_path='.')
 def train(cfg: dict):
 	"""
-	Script for training Puppeteer agents for humanoid control tasks.
+	用于训练人类控制任务的木偶代理脚本。
 
-	Most relevant args:
-		`task`: task name (default: tracking)
+	最相关的参数：
+		`task`: 任务名称（默认：tracking）
 		`steps`: number of training/environment steps (default: 10M)
 		`seed`: random seed (default: 1)
 
 	See config.yaml for a full list of args.
 
-	Example usage:
+	示例用法：
 	```
 		$ python train.py task=tracking
 	```

@@ -2,13 +2,13 @@ from dm_control import composer
 from dm_control.locomotion.examples import basic_cmu_2019
 import numpy as np
 
-# Build an example environment.
+# 建立一个示例环境。
 env = basic_cmu_2019.cmu_humanoid_run_walls()
 
-# Get the `action_spec` describing the control inputs.
+# 获取描述控制输入的`action_spec`。
 action_spec = env.action_spec()
 
-# Step through the environment for one episode with random actions.
+# 通过随机动作逐步浏览环境。
 time_step = env.reset()
 while not time_step.last():
   action = np.random.uniform(action_spec.minimum, action_spec.maximum,

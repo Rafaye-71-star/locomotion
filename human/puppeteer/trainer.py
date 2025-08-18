@@ -58,7 +58,7 @@ class Trainer():
 			obs = TensorDict(obs, batch_size=(), device='cpu')
 		if action is None:
 			action = torch.full_like(self.env.rand_act(), float('nan'))
-		action = action[:self.cfg.action_dim] # take first action if multiple returned
+		action = action[:self.cfg.action_dim] # 如果返回多个就选第一个动作
 		if reward is None:
 			reward = torch.tensor(float('nan'))
 		if terminated is None:
@@ -72,20 +72,20 @@ class Trainer():
 		return td
 
 	def train(self):
-		"""Train a Puppeteer (TD-MPC2) agent."""
+		"""训练一个 Puppeteer (TD-MPC2) 代理."""
 		train_metrics, done, eval_next = {}, True, True
 
 		while self._step <= self.cfg.steps:
 
-			# Evaluate agent periodically
+			# 定期评估代理
 			if self._step % self.cfg.eval_freq == 0:
 				eval_next = True
 
-			# Save agent periodically
+			# 定期保存代理
 			if self.cfg.save_agent and self._step % self.cfg.save_freq == 0 and self._step > 0:
 				self.logger.save_agent(self.agent, self._step)
 
-			# Reset environment
+			# 重置环境
 			if done:
 				if eval_next:
 					eval_metrics = self.eval()
@@ -106,7 +106,7 @@ class Trainer():
 				obs = self.env.reset()
 				self._tds = [self.to_td(obs)]
 
-			# Collect experience
+			# 收集经验
 			if self._step > self.cfg.seed_steps:
 				action = self.agent.act(obs, t0=len(self._tds)==1)
 			else:
@@ -114,7 +114,7 @@ class Trainer():
 			obs, reward, done, info = self.env.step(action)
 			self._tds.append(self.to_td(obs, action, reward, info['terminated']))
 
-			# Update agent
+			# 更新代理
 			if self._step >= self.cfg.seed_steps:
 				if self._step == self.cfg.seed_steps:
 					num_updates = self.cfg.seed_steps
