@@ -1,7 +1,3 @@
-% 波-粒（局部连接）二象性
-% 波和连接同时考虑比单独一个精度更高
-% 全局的波在局部形成共振
-
 % Alex --> 神经场理论中的深度学习 -> 几何约束
 % https://github.com/kwignb/RandomNeuralField/blob/main/src/models/networks.py
 
@@ -70,6 +66,7 @@
 
 \usepackage{hyperref}
 \usepackage{makecell}
+\usepackage{pythonhighlight}
 
 \usepackage{subfigure}  % 使用子图（多个图凑九宫格）
 
@@ -1141,20 +1138,139 @@ Here we describe the steps taken in order to create the physics MuJoCo fly model
 The resulting MuJoCo model is available at \href{https://github.com/TuragaLab/flybody}{https://github.com/TuragaLab/flybody}.
 
 
-% OpenSim -> MuJoCo plugin
-\textbf{Initial conversion}. The Blender-to-MuJoCo export plug-in\cite{tunyasuvunakool2020dm_control}1 was used to export a raw MuJoCo model containing only geometrical information: 
+% OpenSim -> -> MuJoCo 插件
+\textbf{Initial conversion}. The Blender-to-MuJoCo export plug-in\cite{tunyasuvunakool2020dm_control} was used to export a raw MuJoCo model containing only geometrical information: 
 % 仅包含几何信息：带关节轴和限制的 身体网格 和 运动学树
 body meshes and a kinematic tree with joint axes and limits.
 
 
 \textbf{Model building script}. 
 % 使用PyMJCF操作导入 MuJoCo 的原始模型
-The raw MuJoCo model was then loaded and manipulated with a Python script using PyMJCF, a Python library for model manipulation which is part of Google DeepMind’s dm control suite\cite{tunyasuvunakool2020dm_control}. 
+% PyMJCF能够将多个独立的 MJCF 模型组合成一个更大的模型
+% https://github.com/google-deepmind/dm_control/tree/main/dm_control/mjcf
+% https://github.com/ian-chuang/Manipulator-Mujoco
+The raw MuJoCo model was then loaded and manipulated with a Python script using PyMJCF, a Python library for model manipulation which is part of Google DeepMind's dm control suite\cite{tunyasuvunakool2020dm_control}. 
 The following steps were taken.
 
 
-Enforced consistent naming everywhere using a part sternum side convention e.g., “coxa T3 right”. 
-Consistent naming allows for conveniently readable loops like
+
+\begin{itemize}
+	% 命名约定的一致
+	\item[1.] 
+	Enforced consistent naming everywhere using a part sternum side convention e.g., "coxa T3 right". 
+	Consistent naming allows for conveniently readable loops like
+	% lins: 髋、股骨、胫骨、踝骨
+	% sternums: 胸骨
+	% 注意括号配对，否则显示不正常（可拷贝到开发环境中进行检查）
+	\begin{python}
+	thorax = mjcf_model.find('body', 'throax')
+	legs = [body for body in throax.find_all('body') if 'coxa' in body.name]
+	links = ['coxa', 'femur', 'tibia', 'tarsus', 'tarsus2', 'tarsus3', 'tarsus4']
+	sternums = ['T1', 'T2', 'T3']
+	sides = ['right', 'left']
+	for sternum in sternums:
+ 	  for side in sides:
+  	    for leg in legs:
+    	  for sternum in leg.name and side in leg.name:
+	      	for link in links:
+	      	# Do something with each link in each leg.
+	\end{python}
+
+	% 使用MuJoCo中的运动树
+	\item[2.] 
+	Made use of MuJoCo's cascading defaults mechanism, avoiding repeated values. 
+	Common properties like angle ranges, damping and actuator properties for all joints of the same type or masses of links of the same type are given by a single number in the model, defined in a default class, which is then inherited by elements in the kinematic tree.
+	
+	% 厘米-克-秒单位制（英文：centimeter-gram-second system，故常简称CGS制）
+	% MKS 系统是以米、公斤及秒（MKS）为基础单位
+	\item[3.] 
+	Model units were chosen to be CGS, for better numerical precision. 
+	Note that in MKS, some values are extremely small, for example the inertia of a tarsus link is on the order of 1 × 10$ ^{-20} $ kg m$ ^2 $ , while in CGS is $1 \times 10 ^{-20} $ g cm$ ^2 $. 
+	The difference in accuracy is significant for double-precision floating-point arithmetic.
+	
+	
+	% 几何+经验质量 -> 身体的转动惯量
+	\item[4.] 
+	Body moments-of-inertia were computed by MuJoCo given mesh geometries and empirical masses, assuming uniform density for each body part.
+	
+	
+	% 对称
+	\item[5. ] 
+	Kinematic symmetry was enforced to numerical precision, transverse of the sagittal plane.
+	
+	
+	% 关节轴朝向
+	\item[6.] 
+	Joint axis orientations were reflected through the saggital plane, ensuring identical semantics on both sides i.e., joint rotation in the positive (negative) direction always corresponds to extension (flexion) and abduction (adduction), respectively.
+	
+	
+	% 关节角度参考值
+	\item[7.] 
+	Joint angle reference values were chosen so that 0.0 corresponds to the base pose, see Figure 1 in the main text.
+	
+	
+	% 原始几何碰撞体
+	\item[8.] 
+	A layer of primitive collision geoms was created, initially by letting MuJoCo fit primitives to meshes by matching ineritas, and then by manual fine-tuning.
+	
+	
+	% 手动排除无法碰撞的物体对
+	\item[9.] 
+	Manually excluded pairs of bodies that cannot collide, both to avoid spurious collisions and to increase simulation speed. 
+	Note that certain collisions that are possible in real flies were also excluded. 
+	In particular since the modeled wings are rigid and while real wings are flexible, wing-wing and wing-body collisions cannot be well modeled.
+	
+	
+	% 在腹部和跗骨处添加肌腱
+	\item[10.] 
+	Added tendons to the abdomen and the tarsi. 
+	These "fixed" tendons are a simplification of spatially routed tendons, whose length corresponds to a linear combinations of joint angles, allowing a single actuator to act on multiple joints e.g., to flex the multiple links of the tarsus or abduct the entire abdomen. 
+	See examples in Figure~\ref{fig:fig_1} in the main text.
+	
+	% 将默认身体俯仰角设置为 47.5°
+	\item[11.] 
+	Set the default body pitch angle to 47.5°, following\cite{muijres2014flies}. 
+	Re-orient the wing joint axes such that when the body is at 47.5°, the wing yaw axes are strictly vertical and the stroke plane is horizontal.
+	
+	% 增加 78 个执行器
+	\item[12.] 
+	Added a total of 78 actuators:
+		\begin{itemize}
+			% 腿上 8 个执行器
+			\item 8 actuators in each leg (coxa: 3, femur: 2, tibia: 1, tarsus: 2), using desired angle (position) semantics, with gains chosen so that a force of approximately one body weight can be applied at the end-effector at the base pose.
+			
+			% 翅膀执行器
+			\item Wings actuators (yaw, roll, pitch) have torque semantics with gain values of 18.0 dyn cm (also see Methods).
+			
+			% 16 个用于近端关节的附加执行器
+			\item 
+			16 additional actuators for proximal joints: head and rostrum (4), haustelli (2), labri (2), antennae (6) and abdomen (2).
+			
+			% 爪子上有 6 个粘附执行器
+			\item 
+			6 adhesion actuators at the claws which can apply a force up to 1 $ \times $ body weight.
+			
+			% 口腔内有 2 个粘连执行器（盂唇）。
+			\item 
+			2 adhesion actuators in the mouth (labrum).
+		\end{itemize}
+	
+	% 以自我为中心的传感器
+	\item[13.] 
+	Added egocentric sensors (also see Supplementary Table~\ref{tab:s_4}):
+		\begin{itemize}
+			% 前庭系统（加速度传感器）
+			\item An ideal accelerometer and gyro to the thorax, corresponding to processed vestibular sensor information.
+			
+			% 皮肤上（微风拂面） 毛囊中的空气运动传感器（速度计）
+			\item 
+			An ideal velocimeter, corresponding to processed information from air motion sensors in the hair follicles.
+			
+			% 
+			\item Added force and touch sensors at the end effectors. The former report the force passing through the first tarsus joints, while the latter report pressure applied to the claw.
+		\end{itemize}
+\end{itemize}
+
 
 
 % 流体作用力的现象学模型
@@ -1263,6 +1379,7 @@ Averaged over 52 male humans.
 
 
 
+% 所运行模型的传感系统的默认配置
 \begin{table}[htbp]
 	\centering
 	\small
@@ -1279,10 +1396,12 @@ Averaged over 52 male humans.
 		vision      &   right eye camera      &    unitless RGB & (32, 32, 3)  \\
 		      &   left eye camera      &     & (32, 32, 3)  \\
 		% 速度计（人的前庭系统中没有）
+		\midrule
 		vesitibular      &   velocimeter      &    cm/s & 3  \\
 		      &   accelerometer      &    cm/s$ ^2 $ & 3  \\
 		      &   gyro (rotational velocity)      &    rad/s & 3  \\
 		      &   gravity direction      &    cm & 3  \\
+		\midrule
 		% 本体感受：关节角度（传感器是什么）
 		proprioception      &   joint angles      &    rad & 102  \\
 		      &   joint velocities      &    rad/s & 102  \\
@@ -1290,6 +1409,8 @@ Averaged over 52 male humans.
 		% 末端器位置
 		      &   end-effector positions      &    unitless RGB & (7, 3)  \\
 		% 机械性感受
+		% dyn: 表面张力，1牛顿等于10^5达因。达因：https://zh.wikipedia.org/zh-hans/%E8%BE%BE%E5%9B%A0
+		\midrule
 		mechanoreception      &   leg force sensors      &    dyn & (6, 3)  \\
 		      &   leg touch sensors      &    dyn & 6  \\
 		\bottomrule
