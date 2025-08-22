@@ -1266,8 +1266,14 @@ The following steps were taken.
 			\item 
 			An ideal velocimeter, corresponding to processed information from air motion sensors in the hair follicles.
 			
-			% 
+			% 第一跗骨关节的力 -> （末端执行器上的 力传感器）
+			% 手的压力 -> （末端执行器上的 触觉传感器）
 			\item Added force and touch sensors at the end effectors. The former report the force passing through the first tarsus joints, while the latter report pressure applied to the claw.
+			
+			
+			% 两个眼睛 -> 摄像头
+			\item Two eye cameras, at the geometric center of the eyes. 
+			These are standard openGL cameras with a wide 140° field-of-view, see main text for how these were used in visually guided experiments.
 		\end{itemize}
 \end{itemize}
 
@@ -1302,6 +1308,49 @@ The following steps were taken.
 
 % 跑步模仿人物 的配置
 \subsubsection{Walking imitation task configuration}
+
+The reinforcement learning task is set as follows. 
+In each episode, a reference trajectory is randomly selected from the walking dataset. 
+The model is required to track the CoM position and orientation of the reference fly body, as well as the detailed motion of the legs. 
+The initial model posture and the CoM position and velocity are set equal to the reference in the first step of the selected trajectory. 
+The episode ends when the end of the trajectory is successfully reached or terminates early if the model CoM is displaced from the reference by more than 0.3 cm (one body length.)
+
+
+We used a multiplicative version of the imitation reward mostly similar to\cite{peng2018deepmimic,merel2020catch}. 
+At every timestep, the reward measures the similarity between the current model and reference pose, position, and orientation. 
+The reward function is formulated as a product of (not normalized) Gaussian functions, one Gaussian for each quantity compared, e.g. a joint angle, the CoM position, etc. 
+As the Gaussians are not normalized, each of them is in the range $ [0, 1] $, and so is the total multiplicative reward. 
+There is no unique way to construct this imitation reward function and some of the terms could be redundant/overlapping. At each time step, the reward $ R $ is calculated as:
+\begin{equation}
+	R = \text{exp} (
+		- E_\text{com}
+		- E_\text{quat}
+		- E_\text{qvel}
+		- E_\text{ee}
+	)
+\end{equation}
+where the four terms expressing different aspects of the pose tracking objective are:
+\begin{equation}\label{key}
+	\begin{aligned}
+		& E_\text{com} = \frac{1}{2 \delta_\text{com}^2} 
+			|| r_\text{com} - r_\text{com}^{*} ||^2  \quad 
+			\text{center-of-mass position} \\
+		% 关节四元数（Q=a+bi+cj+dk, i,j,k是虚数） vs 欧拉角
+		& E_\text{quat} = \frac{1}{2 \delta_\text{quat}^2} 
+			\sum_{i=1}^{N_\text{joints}} || log(q_i \circ q_i^{*-1}) ||^2  \quad
+			\text{joint velocities} \\
+		& E_\text{qvel} = \frac{1}{2 \delta_\text{qvel}^2} 
+	\end{aligned}
+\end{equation}
+% 
+$ E_\text{com} $ measures the similarity between the current model and reference Cartesian CoM positions, $ r_\text{com} $ and r ?com. 
+Equat measures the similarity between the model and reference joint quaternions qi and qi ? for all joints, including the root joint. 
+Joint quaternions encode both the joint angle and the direction of the joint rotation axis for hinge joints (or body orientation for the root joint.) 
+Eqvel expresses the similarity between the model and reference joint velocities, vi and vi ? . 
+Eee compares the Cartesian positions of the end-effectors (six leg tips), ri and r ?i . 
+Each one of the four error E terms has its own reward tightness (scale) hyperparameter, expressed as a standard deviation $ \delta $. 
+See Supplementary Table 16 for the hyperparameter values used.
+
 
 
 % 模拟速度
