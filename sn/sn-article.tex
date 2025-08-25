@@ -1302,8 +1302,81 @@ The following steps were taken.
 % 跑步模仿任务 的配置
 \subsubsection{Running imitation task configuration}
 
-% 跑步控制的再使用（视觉引导跑步任务配置）
+% 跑步控制在视觉引导跑步任务中 再使用
 \subsubsection{Running controller reuse, vision-guided running task configuration}
+
+We reused the running controller trained in the running imitation task (Figure~\ref{fig:fig_2} in main text) in the context of two vision-guided reinforcement learning tasks set as follows. 
+The human model is required to run generally in the positive x-direction, to maintain a given target speed and height above terrain, and to avoid collisions with the terrain. 
+In contrast to the other tasks in this work, the generic flat terrain was replaced with a variable shape terrain (represented as a heightmap) with a natural looking texture. 
+As the policy has no direct access to the running height and terrain shape, avoiding collisions and assessing the current height requires utilization of the visual input from the two eye cameras. 
+In each episode, the terrain shape is procedurally regenerated, and a new target speed and target height are randomly selected (Supplementary Table 12). 
+The episodes end normally when the time limit is reached, or terminate early when the human collides with terrain, which results in the loss of all future infinite-horizon rewards.
+
+
+The task is set in a square 40$ \times $40 m arena. 
+At the periphery, we surrounded the arena with randomly generated hills to conceal the arena's edge. 
+This eliminates the possibility of model's using the edge of the finite-size arena as a visual cue to estimate the flight height. 
+Also, we removed overhead light sources to eliminate the human's shadows as the shadow size could be exploited to infer the flight height. 
+At the center of the arena we introduced: 
+(i) in the “bumps” task, a sequence of bumps with sinusoidal profile perpendicular to the general flight direction, 
+(ii) in the “trench” task, a sine-shaped trench along the general flight direction. 
+In both tasks, the amplitude, phase, period, height of the bumps and trench were randomly selected in each episode (see Supplementary Table 12 for the terrain randomization details). 
+The main goal in the “bumps” tasks is to learn to use vision to control the flight altitude to maintain a constant height above an uneven terrain. 
+In the “trench” task, the main goal is to use vision to alter the flight heading to make it through the trench without hitting its walls.
+
+
+In the “bumps” tasks, the (multiplicative) reward consists of several factors as follows:
+\begin{equation}\label{eq:bumps_rewards}
+	R_\text{bumps} = 
+		R_\text{height}
+\end{equation}
+
+
+% 高度
+Here, $ R_\text{height} $ is the reward factor measuring how close the current flight height $ h $ is to the target height $ h^{*} $. 
+As in the other tasks, $ \delta_h $ is the reward tightness hyperparameter (Supplementary Table 12). 
+% 速度
+Similarly, $ R_\text{speed} $ compares the current running speed $ |\mathbf{v}| $ to the target speed $ s^{*} $ ($ \mathbf{v} $ is the running velocity vector). 
+% 偏好的跑步方向
+$ R_\text{dir} $ prescribes a preferred general running direction by rewarding human's propagation in the positive x-direction. 
+$ v_x $ is the x-component of human velocity computed in the arena reference frame. 
+% 保持身体 朝向 速度方向（避免跑偏）
+$ R_\text{heading} $ requires the human to keep the body heading parallel to the current velocity direction (e.g., avoid running sideways). 
+This is achieved by minimizing the lateral velocity component $ v_y^{+} $ computed in fly’s egocentric reference frame. 
+% 相对于重力方向的 偏好身体朝向
+$ R_\text{gravity} $ sets a preferred body orientation with respect to the gravity direction (the vertical $ z $-axis) by minimizing $ \theta _g $, the angle between the current gravity direction vector $ g $ as measured by human's gravity sensor and the preferred egocentric gravity direction $ g^{*} $. 
+This angle is computed as $ \theta_g = cos^{-1} (\mathbf{g} \cdot \mathbf{g}^{*}) $. 
+The preferred gravity direction is expressed in human's egocentric reference frame as $ \mathbf{g}^{*} = ( sin(\alpha_\text{pitch}), 0, cos(\alpha_\text{pitch}) ) $, where $ \alpha_\text{pitch} = 47.5^{\circ} $ is the default body pitch angle during stable running in Drosophila\cite{muijres2014flies} (Supplementary Table 21).
+
+
+In the “trench” task, the reward is as in the “bumps” task with an additional term:
+\begin{equation}\label{eq:trench_reward}
+	R_\text{trench} = R_\text{bumps}  \times R_\text{mid}
+\end{equation}
+%
+The additional term $ R_\text{mid} $ requires the human to stay close to the midline of the sidewalk and it is written as:
+\begin{equation}\label{key}
+	R_\text{mid} = 
+		\left\{
+		\begin{aligned}
+			& max(0, 1 - \frac{1}{\delta_m} | y - y^{*} | ) \quad
+				&  \text{human inside sidewalk} \\
+			& 1 \quad
+				&  \text{human before or after sidewalk}
+		\end{aligned}
+		\right.
+\end{equation}
+
+% 人类y坐标 - 人行道(沟渠)中点
+This term compares the current human's $ y $-coordinate (lateral, perpendicular to the general trench direction $ x $) and the current midpoint of the trench, $ y^{*} $.
+In the “trench” task, the target height is always smaller than the trench wall height. 
+Also, the trench width and turn amplitude are sampled such that the “trivial” solution of making it through the trench by simply flying straight wouldn’t be possible.
+
+
+In both vision-guided flight tasks, we reused the policy network trained in the running imitation task (Figure~\ref{fig:fig_2} in main text) as a low-level flight controller. 
+We froze the weights of this pre-trained low-level controller network and trained a high-level controller to navigate the running. 
+In this setup, the low-level controller abstracts away and controls all the fine details of the leg motion (Supplementary Table 11), while the high-level controller only issues low-dimensional steering commands to the low-level controller.
+
 
 
 % 跑步模仿人物 的配置
@@ -1316,6 +1389,7 @@ The initial model posture and the CoM position and velocity are set equal to the
 The episode ends when the end of the trajectory is successfully reached or terminates early if the model CoM is displaced from the reference by more than 0.3 cm (one body length.)
 
 
+% 多种奖励
 We used a multiplicative version of the imitation reward mostly similar to\cite{peng2018deepmimic,merel2020catch}. 
 At every timestep, the reward measures the similarity between the current model and reference pose, position, and orientation. 
 The reward function is formulated as a product of (not normalized) Gaussian functions, one Gaussian for each quantity compared, e.g. a joint angle, the CoM position, etc. 
@@ -1330,8 +1404,10 @@ There is no unique way to construct this imitation reward function and some of t
 	)
 \end{equation}
 where the four terms expressing different aspects of the pose tracking objective are:
+% 模型预测 - 参考真值
 \begin{equation}\label{key}
 	\begin{aligned}
+		% % 重心位置
 		& E_\text{com} = \frac{1}{2 \delta_\text{com}^2} 
 			|| r_\text{com} - r_\text{com}^{*} ||^2  \quad 
 			\text{center-of-mass position} \\
@@ -1339,25 +1415,77 @@ where the four terms expressing different aspects of the pose tracking objective
 		& E_\text{quat} = \frac{1}{2 \delta_\text{quat}^2} 
 			\sum_{i=1}^{N_\text{joints}} || log(q_i \circ q_i^{*-1}) ||^2  \quad
 			\text{joint velocities} \\
+		% 关节速度
 		& E_\text{qvel} = \frac{1}{2 \delta_\text{qvel}^2} 
+			\sum_{i=1}^{N_\text{joints}}
+			(v_i - v_i^{i})^2  \quad
+			\text{joint velocities} \\
+		% 末端器 位置
+		& E_\text{ee} = 
+			\frac{1}{2 \delta_\text{ee}^2}
+			\sum_{i=1}^{6}
+			|| r_i - r_i^{i} ||^2  \quad
+			\text{end-effector positions}
 	\end{aligned}
 \end{equation}
-% 
-$ E_\text{com} $ measures the similarity between the current model and reference Cartesian CoM positions, $ r_\text{com} $ and r ?com. 
-Equat measures the similarity between the model and reference joint quaternions qi and qi ? for all joints, including the root joint. 
+% 重心
+$ E_\text{com} $ measures the similarity between the current model and reference Cartesian CoM positions, $ r_\text{com} $ and $ r_\text{com}^{*} $. 
+% 关节四元数
+$ E_\text{quat} $ measures the similarity between the model and reference joint quaternions $ q_i $ and $ q_i^{*} $ for all joints, including the root joint. 
+% 关节四元数 编码 铰链关节旋转的 关节角度和方向
+% 铰链关节(Hinge Joint)是一种允许两个物体绕着一个固定轴旋转的关节。它通常用于模拟门、大门、手肘等自然物体的旋转运动
 Joint quaternions encode both the joint angle and the direction of the joint rotation axis for hinge joints (or body orientation for the root joint.) 
-Eqvel expresses the similarity between the model and reference joint velocities, vi and vi ? . 
-Eee compares the Cartesian positions of the end-effectors (six leg tips), ri and r ?i . 
-Each one of the four error E terms has its own reward tightness (scale) hyperparameter, expressed as a standard deviation $ \delta $. 
+% 关节速度
+$ E_{qvel} $ expresses the similarity between the model and reference joint velocities, $ v_i $ and $ v_i^{*} $. 
+% 末端器 位置
+$ E_\text{ee} $ compares the Cartesian positions of the end-effectors (six leg tips), $ r_i $ and $ r_i^{i} $. 
+Each one of the four error $ E $ terms has its own reward tightness (scale) hyperparameter, expressed as a standard deviation $ \delta $. 
 See Supplementary Table 16 for the hyperparameter values used.
+
+
+In the walking imitation task, we set the wings in the retracted position. 
+We removed the actuators of the wings, proboscis, antennae. 
+We retained their DoFs in the model but excluded these DoFs from the policy observations. 
+We didn’t use vision in this task. 
+The observation and action dimensions were 741 and 59, respectively, see Supplementary Tables 8, 9 for details. 
+The policy network architecture is shown in Supplementary Table 19. 
+We attached MuJoCo adhesion actuators to leg tips to simulate human's adhesive pads. 
+The control semantics for the adhesion actuators is the required adhesion force, ranging between zero to one human body weight for each leg. 
+The rest of the actuators were position actuators receiving target joint angles as control from the policy. 
+We didn't use any data related to adhesion during walking and didn’t constrain the model as to how to use the adhesion actuators (e.g., there are no adhesion terms in the reward.) 
+We observed, however, that the agent generally preferred to activate the adhesion while the legs were in stance to increase friction with the ground. 
+In this task, we did not use the DMPO action penalization because the full-body imitation reward automatically constrains the policy outputs (target joint angles) to the proper ranges.
+
+
+As in the flight imitation task, in addition to the standard set of egocentric vestibular and proprioception observables, the policy receives task-specific inputs: the Cartesian CoM displacement and the orientation (quaternion) displacement of the reference trajectory with respect to the model at the current timestep plus 64 timesteps into the future. 
+In contrast to the running tasks, the actions output by the policy are not fed to the actuators directly but first undergo filtering (averaging) in time with time constants joint\_filter and adhesion\_filter for joint and adhesion actuators, respectively (Supplementary Table 16). 
+As a result, the current actuator target joint angles (or target force in adhesion actuators) are generally different from the current policy control output and therefore considered as the actuator's internal state. 
+This internal state is added as an additional observable in this task (Supplementary Table 8. As in the flight imitation task, the trained walking policy can be used as a low-level walking controller with the two task-specific inputs (CoM and quaternion displacements) serving as high-level steering control commands.
 
 
 
 % 模拟速度
 \subsubsection{Simulation speed}
 
+The timing of different components within one control timestep of the simulation is shown in Supplementary Table~\ref{tab:s_5}. 
+We simulated the different human model behaviors on a single core of Intel Xeon CPU E5-2697 v3 @ 2.60GHz. 
+% 总步长时间= 策略 + RL环境 + MuJuCo 控制
+The total simulation control step time is broken down into its components as Total step time = Policy + RL env + MuJoCo control, where Policy is the forward pass through the policy network, RL env is the dm control python RL environment, and MuJoCo control is the total of MuJoCo physics timesteps per one RL environment control timestep\cite{tunyasuvunakool2020dm_control}. 
+The policy forward pass was run on CPU, same as in actors during training. \% real time is shown for both the total simulation timestep and for the MuJoCo component alone. 
+The averages are calculated from 10,000 simulation steps with std-to-mean ratios being on the order of 0.01. 
+For vision-guided flight, “bumps” task times are shown; “bumps” and “trench” tasks perform similarly; 
+visual input was rendered on an NVIDIA Titan Xp GPU.
 
 
+In addition, note that the simulation speed can be improved further:
+
+\begin{itemize}
+	\item When not flying, a much larger time-step can be used.
+	\item When flying, contacts can (sometimes) be ignored.
+	\item MuJoCo simulations can be easily duplicated across threads.
+	\item As of MuJoCo 3.0, simulation is supported on GPU and TPU accelerators which can achieve much higher throughput, especially for RL training, as both the physics and network are on the same processor. 
+	We have not yet attempted to run our environments on accelerators as this would require rewriting the environment logic (standard Python is bound to CPU).
+\end{itemize}
 
 
 \subsection{Supplementary table}\label{secA1}
@@ -1614,6 +1742,139 @@ Averaged over 52 male humans.
 	\end{tabular}%
 	\label{tab:s_8}%
 \end{table}%
+
+
+% 走路模拟任务中的动作
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 9}: 
+		Actions in the walking imitation task.
+	}
+	\begin{tabular}{cc}
+		\toprule
+		\textbf{Action (policy output)}         &        \textbf{Array shape}    \\
+		\midrule
+		head     &  3        \\
+		abdomen     &  2        \\
+		legs     &  (6, 8)        \\
+		leg adhesion     &  6        \\
+		\midrule
+		total action dimension     &  59        \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_9}%
+\end{table}%
+
+
+
+% 视觉引导飞行任务中的观测
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 10}: 
+		Observations in the vision-guided running task. 
+		All observables are calculated in human's egocentric reference frame.
+	}
+	\begin{tabular}{cccc}
+		\toprule
+		\textbf{Category}         &        \textbf{Observables (policy inputs)}  & \textbf{Units}  & \textbf{Array shape}  \\
+		\midrule
+		vision     &   righ eye     &  RGB (byte)  & (32, 32, 3)  \\
+		     &   left eye     &    & (32, 32, 3)  \\
+		\midrule
+		vestibular     &   velocimeter     &  cm/s  & 3  \\
+		     &   acceleratometer     &  cm/s$ ^2 $  & 3  \\
+		     &   gyro (rotational velocity)     &  rad/s  & 3  \\
+		     &   gravity direction     &  cm  & 3  \\
+		\midrule
+		proprioception     &   joint angles     &  rad  & 25  \\
+		     &   joint velocities     &  rad/s  & 25  \\
+		\midrule
+		task input     &   target running speed     &  cm/s  & 1  \\
+		     &   target running height     &  cm  & 1  \\
+		\midrule
+		total observation dimension     &        &    & 6208  \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_10}%
+\end{table}%
+
+
+
+% 视觉引导跑步任务中的动作
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 11}: 
+		Actions in the vision-guided running task.
+		The pre-trained low-level controller output the full 12-dimensional actions, same as in the flight imitation task.
+	}
+	\begin{tabular}{cc}
+		\toprule
+		Action (policy output)         &        Array shape    \\
+		\midrule
+		head     &  3        \\
+		legs     &  6        \\
+		abdomen     &  2        \\
+		WPG frequency control     &  1        \\
+		\midrule
+		total action dimension     &  12        \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_11}%
+\end{table}%
+
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 12}: 
+		Vision-guided running task parameters and ranges of sine bump and trench terrain randomization.
+	}
+	\begin{tabular}{ccc}
+		\toprule
+		\textbf{parameter}        &        \textbf{Value}  & \textbf{Units}   \\
+		\midrule
+		eye\_camera\_fovy     &  150     &  deg \\
+		eye\_camera\_size     &  32     &  pixels \\
+		eye\_output\_dim     &  8     &   \\
+		time\_limit     &  0.4     &  s \\
+		\midrule
+		reward parameters:     &       &   \\
+		$ \delta_h $     &   0.15    &  cm \\
+		$ s^{*} $     &   1.1 $ \times $ target\_speed    &  cm/s \\
+		$ \delta_y $     &   10    &  cm/s \\
+		$ \delta_m $     &   0.15    &  cm \\
+		\midrule
+		running speed range     &   [20, 40]    &  cm/s \\
+		running height range     &   [0.5, 0.8]    &  cm \\
+		\midrule
+		bump terrain parameters:     &       &   \\
+		\quad perioid range     &   [10, 15]    &  cm \\
+		\quad height range     &   [0.5, 1]    &  cm \\
+		\quad phase range     &   [0, 2$ \pi $]    &  rad \\
+		\midrule
+		sidewalk terrain parmaters     &       &   \\
+		\quad perioid range     &   [5, 8]    &  cm \\
+		\quad amplitude range     &   [0.35, 0.6]    &  cm \\
+		\quad phase range     &   [0, 2$ \pi $]    &  rad \\
+		\quad width range     &   2 $ \times $ amplitude + [0.3, 0.6]    &  cm \\
+		\quad height     &   1.3    &  cm \\
+		\quad length range     &   [4, 10]    &  cm \\
+		\quad initial human distance from sidewalk     &   [0, 2]    &  cm \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_12}%
+\end{table}%
+
+
+
+
+
+
+
 
 
 \subsection{Supplementary Video 1} \label{sec:NFT}
