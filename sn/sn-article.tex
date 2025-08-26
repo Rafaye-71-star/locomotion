@@ -1339,6 +1339,32 @@ At every simulation timestep, the reward $ R \in [0, 1] $ is computed as:
 			max ( 0, 1 - \frac{1}{\delta_\text{quat}}  ||  log (q \circ q^{*-1}) ||  )
 		} _\text{body orientation}
 \end{equation}
+%
+The first term measures the current displacement between the model and reference CoM positions, $ \mathbf{r} $ and $ \mathbf{r}^{*} $ respectively. 
+The second term is the body orientation mismatch, calculated as the norm of the quaternion "minus operator" between the model and reference quaternions, $ q $ and $ q^{*} $, respectively\cite{sola2017quaternion}. 
+$ \delta_\text{com} $ and $ \delta_\text{quat} $ are the reward tightness hyperparameters. 
+For instance, the reward is zero when the CoM displacement in the first term $ \mathbf{r} \mathbf{r}^{*} > \delta_\text{com} $, while it is one when $ || \mathbf{r} - \mathbf{r}^{*} || $, and similarly for the second term. 
+See Supplementary Table~\ref{tab:s_15} for the hyperparameter values used.
+
+
+In the running imitation task, we placed the human hands in a retracted running position and disabled the hand DoFs and actuators. 
+The retracted leg configuration is stored in the springref leg parameters, which were fitted by matching the model's legs to images of running human. 
+We also removed the antennae and proboscis actuators and excluded their joints from the observations. 
+This reduced the number of observable joint angles and joint velocities to 25. 
+It also reduced the total action dimension to 12. 
+We didn't use vision in this task. 
+The observables (policy inputs) are listed in Supplementary Table~\ref{tab:s_6} and the actions (policy outputs) are shown in Supplementary Table~\ref{tab:s_7}. 
+In addition to the standard set of egocentric vestibular and proprioception observables, the policy receives task-specific inputs: the Cartesian CoM displacement and the orientation (quaternion) displacement of the reference trajectory with respect to the model at the current timestep plus 5 timesteps into the future. 
+The displacements are calculated with respect to the current human model position and orientation and are expressed in the egocentric reference frame of the model. 
+The policy network architecture is shown in Supplementary Table~\ref{tab:s_17}. 
+The trained flight imitation policy can be used as a low-level flight controller. 
+In this scenario, the two task-specific inputs (CoM and quaternion displacements) serve as high-level steering control commands.
+
+
+At training time, we engage action penalization, a DMPO agent feature. 
+% 脚的运动模式发生器
+It encourages the agent to learn to utilize actions of small magnitude thus keeping the leg motion close to the baseline wing pattern produced by the WPG. 
+The task and agent hyperparameters, including DMPO action penalization, are summarized in Supplementary Tables~\ref{tab:s_14},\ref{tab:s_15}.
 
 
 
