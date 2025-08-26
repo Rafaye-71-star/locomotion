@@ -1280,7 +1280,7 @@ The following steps were taken.
 
 
 % 流体作用力的现象学模型
-\subsubsection{Phenomenological model of fluid forces}
+\subsubsection{Phenomenological model of fluid forces}  \label{sec:fluid_model}
 
 
 % 库塔升力
@@ -1301,6 +1301,46 @@ The following steps were taken.
 
 % 跑步模仿任务 的配置
 \subsubsection{Running imitation task configuration}
+
+As the running reference data, we used previously recorded trajectories of freely running human. 
+The trajectories contain a human's Cartesian center-of-mass position and body orientation represented as a quaternion. 
+The trajectories were recorded at 7500 fps. 
+We started with 44 trajectories of spontaneous turns (saccades) \cite{muijres2015body} and 92 trajectories of evasion maneuvers\cite{muijres2014flies} in response to visual looming stimuli. 
+Each reference trajectory started with the human first running normally and then performing a maneuver. 
+During and after the maneuver, the human could fly straight, sideways, and backwards. 
+The humans could also ascend and descend. 
+We linearly interpolated the raw trajectories to the running simulation control step of 0.2 ms. 
+Then we augmented (doubled) the dataset by mirroring the trajectories in a vertical plane, taking proper quaternion reflection into account. 
+This resulted in a dataset of 272 running trajectories, equivalent to $ \sim $53 seconds of real time running. 
+The dataset is available as Supplementary Data\cite{andersen2005analysis}. 
+We used 80\% of the trajectories for training and the rest for testing. 
+Due to the small size of the dataset, to maintain balance between left and right turns in the training data, we split the dataset such that if a trajectory is in the training set, so is its mirrored counterpart. 
+We simulated running at 0.05 ms physics time-steps and 0.2 ms control time-steps (Supplementary Table~\ref{tab:s_15} ).
+
+
+The reinforcement learning task is set as follows. 
+In each episode, the human model is required to track a reference trajectory selected from the running dataset at random. 
+The episode begins from a random step within the selected reference trajectory, excluding the last 50 steps. 
+The model's initial position, orientation, linear and rotational velocities are set equal to the reference. 
+The initial phase of the wing cycle is randomized. 
+The episode ends either when the end of trajectory is successfully reached, or terminates early if the model hits the ground or is displaced from the reference CoM position by more than 2 cm.
+
+
+The reward is calculated based on how closely the human model tracks the reference trajectory at each timestep. 
+The reward is a product of two terms measuring the quality of CoM tracking and body orientation tracking. 
+At every simulation timestep, the reward $ R \in [0, 1] $ is computed as:
+\begin{equation}\label{eq:track_reward}
+	R = 
+		\underbrace{
+			max ( 0, 1 - \frac{1}{\delta_\text{com}}  || \mathbf{r} - \mathbf{r}^{*} ||  ) 
+		} _\text{CoM displacement}
+		\times
+			\underbrace{
+			max ( 0, 1 - \frac{1}{\delta_\text{quat}}  ||  log (q \circ q^{*-1}) ||  )
+		} _\text{body orientation}
+\end{equation}
+
+
 
 % 跑步控制在视觉引导跑步任务中 再使用
 \subsubsection{Running controller reuse, vision-guided running task configuration}
@@ -1869,6 +1909,258 @@ Averaged over 52 male humans.
 	\label{tab:s_12}%
 \end{table}%
 
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 13}: 
+		Distributed training hyperparameters. 
+		See implementation for more detail.
+	}
+	\begin{tabular}{ccc}
+		\toprule
+		\textbf{Hyperparameter}        &        \textbf{Value (walking)}  & \textbf{Value (running)}   \\
+		\midrule
+		num\_actors     &  32     &  32 \\
+		batch\_size     &  256     &  256 \\
+		prefetch\_size     &  4     &  4 \\
+		min\_replay\_size     &  10$ ^4 $     & 10$ ^4 $ \\
+		max\_replay\_size     & 4 $ \times $ 10$ ^6 $     & 4 $ \times $ 10$ ^6 $  \\
+		num\_samples     &   20    &  20 \\
+		policy\_optimizer\_lr     &   10$ ^{-4} $    &  10$ ^{-4} $ \\
+		critic\_optimizer\_lr     &   10$ ^{-4} $    &  10$ ^{-4} $ \\
+		dual\_optimizer\_lr     &   10 $ ^{-3} $    &  10 $ ^{-3} $ \\
+		target\_critic\_update\_period     &   200    &  107 \\
+		target\_policy\_update\_period     &   200    &  101 \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_13}%
+\end{table}%
+
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 14}: 
+		DMPO agent hyperparameters. 
+		See implementation for more detail.
+	}
+	\begin{tabular}{ccc}
+		\toprule
+		\textbf{Hyperparameter}        &        \textbf{Value (walking)}  & \textbf{Value (running)}   \\
+		\midrule
+		epsilon     &  0.05     &  0.1 \\
+		epsilon\_mean     &  $ 5 \times 10^{-5} $     &  $ 2.5 \times 10 ^{-3} $ \\
+		epsilon\_stddev     &  $ 10^{-7} $     &  $ 10^{-7} $ \\
+		action\_penalization     &  False     &  True \\
+		epsilon\_penalty     &  N/A     &  0.1 \\
+		init\_log\_temperature     &  10     &  10 \\
+		init\_log\_alpha\_mean     &  10     &  10 \\
+		init\_log\_stddev     &  10     &  10 \\
+		per\_dim\_constraining     &  True     &  True \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_14}%
+\end{table}%
+
+
+% 跑步模拟任务的超参数
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 15}:
+		Running imitation task hyperparameters.
+		See implementation for more details.
+	}
+	\begin{tabular}{ccc}
+		\toprule
+		\textbf{Hyperparameter}        &        \textbf{Value}  & \textbf{Units}   \\
+		\midrule
+		physics\_timestep     &  $ 5 \times 10^{-5} $     &  s \\
+		control\_timestep     &  $ 2 \times 10^{-4} $     &  s \\
+		joint\_filter     &  0     &  s \\
+		adhesion\_filter     &  N/A     &  s \\
+		future\_steps     &  5     &   \\
+		terminal\_com\_dist     &  2.0     &  cm \\
+		\midrule
+		reward parameters:     &      &   \\
+		$ \delta_\text{com} $     &  0.4     &  cm \\
+		$ \delta_\text{quat} $     &  3.14     &  rad \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_15}%
+\end{table}%
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 16}:
+		Walking imitation task hyperparameters.
+	}
+	\begin{tabular}{ccc}
+		\toprule
+		\textbf{Hyperparameter}        &        \textbf{Value}  & \textbf{Units}   \\
+		\midrule
+		physics\_timestep     &  $ 2 \times 10^{-4} $     &  s \\
+		control\_timestep     &  $ 2 \times 10^{-3} $     &  s \\
+		joint\_filter     &  0.01     &  s \\
+		adhesion\_filter     &  0.007     &  s \\
+		claw\_friction     &  1.0     &   \\
+		future\_steps     &  64     &   \\
+		time\_limit     &  10.0     &  s \\
+		terminal\_com\_dist     &  0.3     &  cm \\
+		\midrule
+		reward parameters:     &      &   \\
+		$ \sigma _\text{com} $     &  0.0785     &  cm \\
+		$ \sigma _\text{qvel} $     &  53.780     &  rad/s \\
+		$ \sigma _\text{ee} $     &  0.0735     &  cm \\
+		$ \sigma _\text{quat} $     &  1.225     &  rad \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_16}%
+\end{table}%
+
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 17}:
+		Running policy network architecture. 
+		Layer sizes indicated in parentheses.
+	}
+	\begin{tabular}{cc}
+		\toprule
+		\multicolumn{2}{c}{\textit{input}: observations}             \\
+		\midrule
+		\multicolumn{2}{c}{Linear (256)}        \\
+		\multicolumn{2}{c}{LayerNorm}      \\
+		\multicolumn{2}{c}{tanh}     \\
+		\multicolumn{2}{c}{Linear (256)}      \\
+		\multicolumn{2}{c}{ELU}       \\
+		\multicolumn{2}{c}{Linear (256)}       \\
+		\multicolumn{2}{c}{ELU}      \\
+		\midrule
+		Linear (12)     &  Linear (12)  \\
+		     &  softplus \\
+		\textit{output}: action mean     &  \textit{output}: action std  \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_17}%
+\end{table}%
+
+
+
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 18}:
+		Architecture of the high-level controller network for the vision-guided flight task. 
+		Visual input is pre-processed by a convolutional visual module and concatenated with the rest of the observations. 
+		Layer sizes indicated in parentheses. 
+		This high-level controller outputs a steering command of dimension 7 $ \times $ (future steps + 1). 
+		The steering command is then concatenated with the proprioception and vestibular (but not task-input and visual) components of the observations and sent as input to the low-level controller network, which is the policy from the flight imitation task (Supplementary Table~\ref{tab:s_17}.
+	}
+	\begin{tabular}{cc}
+		\toprule
+		\multicolumn{2}{c}{\textit{input}: observations}             \\
+		\midrule
+		\multicolumn{2}{c}{Linear (256)}        \\
+		\multicolumn{2}{c}{LayerNorm}      \\
+		\multicolumn{2}{c}{tanh}     \\
+		\multicolumn{2}{c}{Linear (256)}      \\
+		\multicolumn{2}{c}{ELU}       \\
+		\multicolumn{2}{c}{Linear (256)}       \\
+		\multicolumn{2}{c}{ELU}      \\
+		\midrule
+		Linear (42)     &  Linear (42)  \\
+		&  softplus \\
+		\textit{output}: action mean     &  \textit{output}: action std  \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_18}%
+\end{table}%
+
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 19}:
+		Walking policy network architecture. 
+		Layer sizes indicated in parentheses.
+	}
+	\begin{tabular}{cc}
+		\toprule
+		\multicolumn{2}{c}{\textit{input}: observations}             \\
+		\midrule
+		\multicolumn{2}{c}{Linear (512)}        \\
+		\multicolumn{2}{c}{LayerNorm}      \\
+		\multicolumn{2}{c}{tanh}     \\
+		\multicolumn{2}{c}{Linear (512)}      \\
+		\multicolumn{2}{c}{ELU}       \\
+		\multicolumn{2}{c}{Linear (512)}       \\
+		\multicolumn{2}{c}{ELU}      \\
+		\midrule
+		Linear (59)     &  Linear (59)  \\
+		&  softplus \\
+		\textit{output}: action mean     &  \textit{output}: action std  \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_19}%
+\end{table}%
+
+
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 20}:
+		Fluid force model coefficients. 
+		See Section~\ref{sec:fluid_model} for definition. 
+		The coefficients are stored in the fluidcoef MuJoCo attribute, in this order.
+	}
+	\begin{tabular}{cccc}
+		\toprule
+		\textbf{Index}        &        \textbf{Coefficient}  & \textbf{Description}  & \textbf{Value}  \\
+		\midrule
+		0     &  $ C_D^{\text{blunt}} $     &  Blunt drag  & 1.0  \\
+		1     &  $ C_D^{\text{slender}} $     &  Slender drag  & 0.5  \\
+		2     &  $ C_D^{\text{angular}} $     &  Angular drag  & 1.5  \\
+		0     &  $ C_K $     &  Kutta lift  & 1.7  \\
+		0     &  $ C_M $     &  Magnus lift  & 1.0  \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_20}%
+\end{table}%
+
+
+\begin{table}[htbp]
+	\centering
+	\small
+	\caption{\textbf{Supplementary Table 21}:
+		Running physics parameters.
+	}
+	\begin{tabular}{ccc}
+		\toprule
+		\textbf{Parameter}  & \textbf{Value}  & \textbf{Units}  \\
+		\midrule
+		fluidcoef     &  [1.0, 0.5, 1.5, 1.7, 1.0]  & unitless  \\
+		gainprm     &  [18, 18, 18]  & dyn cm  \\
+		damping     &  0.007769  & dyn s  \\
+		body\_pitch\_angle     &  0  & deg  \\
+		body\_plane\_angle     &  0  & deg  \\
+		body\_freq     &  218  & Hz  \\
+		\bottomrule
+	\end{tabular}%
+	\label{tab:s_21}%
+\end{table}%
 
 
 

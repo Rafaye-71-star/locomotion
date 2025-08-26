@@ -85,6 +85,7 @@ python Carla_Pedestrian_System_GUI.py
 
 * [flybody](https://github.com/TuragaLab/flybody) - [flybody dataset](https://doi.org/10.25378/janelia.25309105)
 * [puppeteer](https://github.com/nicklashansen/puppeteer) - Using MDControl in MuJoCo: Layered World Model as a Visual Full-Body Humanoid Controller
+* [基于模仿学习的人运动的全身控制](https://github.com/robfiras/loco-mujoco)
 * [MuJoCo musculoskeletal models set](https://github.com/MyoHub/myosuite)
 * [myoconverter](https://github.com/MyoHub/myoconverter)
 
