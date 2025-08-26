@@ -1282,6 +1282,48 @@ The following steps were taken.
 % 流体作用力的现象学模型
 \subsubsection{Phenomenological model of fluid forces}  \label{sec:fluid_model}
 
+This section describes the fluid force model we introduced to MuJoCo to facilitate the simulation of human's running.
+% 流体模型计算 施加到 刚体上的力 
+The fluid model computes forces exerted on moving rigid bodies whose shape can be approximated by ellipsoids. 
+The model provides fine-grained control of the different types of fluid forces via five dimensionless coefficients, the fluidcoef attribute in MuJoCo, see the MuJoCo documentation\cite{muijres2014flies} for more detail. 
+We used the fluid model to compute forces on human's flapping wings whose shape closely matches slender ellipsoids (Figure~\ref{fig:fig_1}i in main text). 
+Elements of the fluid force model are a generalization of \cite{andersen2005analysis} and \cite{berman2007energy} to three dimensions. 
+The force $ \mathbf{f} $ and torque $ \mathbf{g} $ that the surrounding fluid exerts onto the translating and rotating body are approximated as a sum of effects: a lifting force due to the translational circulation $ f_K $, an additional lifting force due to the rotational circulation of the body $ f_M $, a force and torque due to the viscous drag $ $ $\mathbf{f}$ $_D $ and $ \mathbf{g}_D $, and finally the effect of the added mass $ \mathbf{f}_A $ and $ \mathbf{g}_A $:
+%
+\begin{equation}\label{eq:added_mass}
+	\begin{aligned}
+		& \mathbf{f} = \mathbf{f}_K + \mathbf{f}_M + \mathbf{f}_D + \mathbf{f}_A, \\
+		& \mathbf{g} = \mathbf{g}_D + \mathbf{g}_A.
+	\end{aligned}
+\end{equation}
+
+The MuJoCo model is implemented generally and the forces are referred to, respectively, as Kutta lift, Magnus force, viscous drag and resistance and added mass. 
+We will use this naming convention here. 
+The forces imposed by the fluid onto each ellipsoid are computed independently by approximating the effect of an incompressible quiescent fluid of density $ \rho $ and (dynamic) viscosity $ \mu $. 
+The problem is described in a reference frame aligned with the principal axes of the ellipsoid and moving with it. 
+The ellipsoid has semi-axes $ \mathbf{r} = {r_x, r_y, r_z} $, volume $ V = (4 \pi / 3) r_x r_y r_z $, velocity $ \mathbf{v} = {v_x, v_y, v_z} $, and angular velocity $ \omega = {\omega_x, \omega_y, \omega_z} $. 
+We will also use $ r_\text{max} = max {r_x, r_y, r_z} $, $ r_\text{min} = min{r_x, r_y, r_z} $, and $ r_\text{mid} = r_x + r_y + r_z - r_\text{max} - r_\text{min} $. 
+The area projected by the ellipsoid onto the plane normal to $ \mathbf{v} $ is
+%
+\begin{equation}\label{eq:projected_eare}
+	A_{\mathbf{v}^\text{proj}} = 
+		\pi
+		\sqrt{
+			\frac{
+				r_y^4 r_z^4 v_x^2 +
+				r_z^4 r_x^4 v_y^2 +
+				r_x^4 r_y^4 v_z^2
+			}{
+				r_y^2 r_z^2 v_x^2 +
+				r_z^2 r_x^2 v_y^2 +
+				r_x^2 r_y^2 v_z^2
+			}
+		}.
+\end{equation}
+%
+The circulation $ \Gamma $ is the line integral of the fluid velocity field vf around a closed curve $ \Gamma = \oint \mathbf{v}_f \cdot d\mathbf{l} $. 
+The individual force and torque components are described below.
+
 
 % 库塔升力
 \textbf{Kutta lift}
@@ -1343,7 +1385,7 @@ At every simulation timestep, the reward $ R \in [0, 1] $ is computed as:
 The first term measures the current displacement between the model and reference CoM positions, $ \mathbf{r} $ and $ \mathbf{r}^{*} $ respectively. 
 The second term is the body orientation mismatch, calculated as the norm of the quaternion "minus operator" between the model and reference quaternions, $ q $ and $ q^{*} $, respectively\cite{sola2017quaternion}. 
 $ \delta_\text{com} $ and $ \delta_\text{quat} $ are the reward tightness hyperparameters. 
-For instance, the reward is zero when the CoM displacement in the first term $ \mathbf{r} \mathbf{r}^{*} > \delta_\text{com} $, while it is one when $ || \mathbf{r} - \mathbf{r}^{*} || $, and similarly for the second term. 
+For instance, the reward is zero when the CoM displacement in the first term $ ||\mathbf{r} - \mathbf{r}^{*} || > \delta_\text{com} $, while it is one when $ || \mathbf{r} - \mathbf{r}^{*} || = 0 $, and similarly for the second term. 
 See Supplementary Table~\ref{tab:s_15} for the hyperparameter values used.
 
 
