@@ -1371,16 +1371,141 @@ So for example, for spherical bodies $ \hat{\mathbf{n}}_{A, \mathbf{v}} \equiv \
 
 
 % 马格努斯力是旋转物体在流体中运动时因压力差产生的横向作用力，其方向垂直于流体流动方向与物体旋转轴。
+
 \textbf{Magnus force}
+
+A spinning body induces rotation in the surrounding fluid which deflects the trajectory of the fluid flow past the body, and the body receives an equal an opposite reaction. 
+Following \cite{andersen2005analysis}, we estimate the force due to the rotation as
+\begin{equation}\label{eq:magus_force}
+	\mathbf{f}_M = 
+		C_M \rho V \omega \times \mathbf{v}
+\end{equation}
+%
+where $ V $ is the volume of the body and $ C_M $ is a coefficient for the force, which we typically set to 1.
 
 
 % 粘性阻力是船舶航行时因流体粘性产生的阻力，由摩擦阻力和粘性压差阻力组成，其中摩擦阻力占比超过50%
 \textbf{Viscous drag}
 
+The drag force acts to oppose the motion of the body relative to the surrounding flow. 
+For high Reynolds numbers, the viscous drag can be approximated with the drag equations, first proposed by Newton, $ f_\mathbf{D} = - C_D \rho s D v^2 $ and $ g_D = -C_D \rho I_D \omega^2 $. 
+Here $ C_D $ is a drag coefficient, $ s_D $ is a reference surface area (e.g., a measure of the area projected on the plane normal to the flow), and $ I_D $ is a reference moment of inertia. 
+These quantities depend on the properties of the fluid, the shape of the body and its velocity \cite{duan2015sphere}. 
+We derive a correlation for the viscous drag based on two surfaces: the projection surface $ A_\mathbf{v}^\text{proj} $ of the ellipsoid onto a plane normal to $ v $ and the maximum projected surface $ A_\text{max} = \pi r_{\max} r_{\mid} $, 
+such that $ A_\mathbf{v}^{\text{proj}} \leq A_{\max} $:
+%
+\begin{equation}\label{key}
+	\mathbf{f}_D = 
+		- \rho
+		[
+			C_D^\text{blunt}  A_{\mathbf{v}}^\text{proj}
+			+ C_D^\text{slender} (A_{\max} - A_\mathbf{v}^\text{proj})
+		]
+		\|
+			\mathbf{v}
+		\|
+		\mathbf{v}
+\end{equation}
+
+We propose an analogous model for the angular drag. 
+For each Cartesian axis we consider the moment of inertia of the maximum swept ellipsoid obtained by the rotation of the body around the axis. 
+The resulting components of the moment of inertia are:
+%
+\begin{equation}\label{eq:inertial_moment}
+	I_{D,i} = 
+		\frac{8 \pi}{15}
+		r_i
+		\max {r_j, r_k}^4
+\end{equation}
+where, as before, the indices $ i, j, k $ are cyclic permutations of the axes $ (x, y, z), (y, z, x), (z, x, y) $. 
+The angular drag torque is computed as:
+%
+\begin{equation}\label{key}
+	\mathbf{g}_D = 
+		- \rho
+		(
+			[ 
+				C_D^\text{angular} I_D 
+				+ C_D^\text{slender} (\mathbf{I}_{\max} - \mathbf{I})
+			] \cdot \mathbf{\omega}
+		) \mathbf{\omega}
+\end{equation}
+Here $ \mathbf{I}_{\max} $ is a vector with each entry equal to the maximal component of $ \mathbf{I}_D $.
+
+
+For low Reynolds numbers, the viscous drag is well approximated by Stokes' law \cite{stokes1851effect} for an equivalent sphere:
+\begin{equation}\label{eq:f_V}
+	\mathbf{f}_V = 
+		- 6 \pi r V \nu \mathbf{v}
+\end{equation}
+
+\begin{equation}\label{eq:g_V}
+	\mathbf{g}_V = -8 \pi r^3 V \nu \mathbf{\omega}
+\end{equation}
+%
+where $ r_V = (r_x + r_y +r_z) / 3 $ is the radius of the equivalent sphere. 
+We add this term to the previously defined viscous drag force and torques $ \mathbf{f}_D $ and $ \mathbf{g}_D $ to approximate the drag well for both high and low Reynolds numbers.
+
+
+
+
+
 
 % 附加质量
 % 物体在流体中变速运动，推动物体的力不仅要为增加物体的动能做功，还要为增加周围流体的动能做功。因此具有一定质量的物体要获得加速度，施加在它上面的力将大于物体质量与加速度的乘积，增加的这部分质量就是附加质量。 [1]附加质量与物体本身的形状及运动方向有关。
 \textbf{Added mass}
+
+Added mass measures the inertia of the fluid that is put into motion by the body's motion. 
+In the case of a body with three planes of symmetry, the forces $ \mathbf{f}_A $ and torques $ \mathbf{g}_A $ can be written as \cite{birkhoff2015hydrodynamics}:
+%
+\begin{equation}\label{key}
+	\mathbf{f}_A
+\end{equation}
+%
+Here, $ \odot $ denotes an element-wise product, $ \dot{\mathbf{v}} $ is the linear acceleration and $\dot{\mathbf{\omega}}$ is the angular acceleration.
+$ \mathbf{m}_A $ and $ \mathbf{I}_A \odot \mathbf{\omega} $ are the virtual linear and angular momentum respectively. 
+The added mass vector $ \mathbf{m}_A = { m_{A,x}, m_{A, y}, m_{A, z} } $ and added-moment of inertia vector $ \mathbf{I}_A = {I_{A,x}, I_{A,y}, I_{A,z}} $ measure the inertia of the fluid displaced by the motion of the body in the corresponding direction and can be derived from potential flow theory for certain simple geometries.
+
+
+For an ellipsoid, the virtual mass $ m_{A, i} $ for a motion along axis $ i $ and the virtual moment of inertia $ A_{A,i} $ for a rotation along axis $ i $ are:
+%
+\begin{equation}\label{eq:virtual_mass}
+	m_{A, i} = 
+	\rho
+	V
+	\frac{\kappa_i}{2-\kappa_i},
+\end{equation}
+
+\begin{equation}\label{eq:virtual_inertia}
+	I_{A, i} = 
+	\frac{\rho V}{5}
+	\frac{
+		(r_j^2 - r_k^2)^2
+		(\kappa_k - \kappa_j)
+	}{
+		2 (r_j^2 - r_k^2)
+		+ (r_j^2 - r_k^2)
+		(\kappa_j - \kappa_k)
+	}
+\end{equation}
+where the dimensionless virtual inertia coefficients are \cite{tuckerman1925inertia}:
+%
+\begin{equation}\label{eq:inertia_coefficient}
+	\kappa_i = 
+		\int_{0}^{\infty}
+		\frac{
+			r_i r_j r_k d \lambda
+		}{
+			\sqrt{
+				(r_i^2 + \lambda)^3
+				(r_j^2 + \lambda)
+				(r_k^2 + \lambda)
+			}
+		}
+\end{equation}
+%
+which we compute by 15-point Gauss–Kronrod quadrature. 
+The indices $ i, j, k $ are cyclic permutations of the axes $ (x, y, z), (y, z, x), (z, x, y) $.
 
 
 % 跑步模仿任务 的配置
