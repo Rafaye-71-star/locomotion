@@ -29,7 +29,7 @@
 pip install torch-2.8.0%2Bcu126-cp310-cp310-win_amd64.whl
 ```
 
-您将需要一台带有GPU（> = 24 GB内存）的机器进行训练； CPU和RAM使用微不足道。我们提供一个`Dockerfile`，以便于安装。您可以通过运行来构建Docker图像
+您将需要一台带有GPU（> = 24 GB内存）的机器进行训练； CPU 和 RAM 使用微不足道。我们提供一个`Dockerfile`，以便于安装。您可以通过运行来构建Docker图像
 
 ```
 cd docker && docker build . -t <user>/puppeteer:1.0.0
@@ -43,22 +43,22 @@ cd docker && docker build . -t <user>/puppeteer:1.0.0
 
 该代码库当前支持**8**个使用 DMControl 在 Mujoco 实现的 CMU 类人体模型的全身控制任务。任务定义如下：
 
-| 任务 | vision
-| --- | --- |
-| stand | N
-| walk | N
-| run | N
-| corridor | Y
-| hurdles-corridor | Y
-| gaps-corridor | Y
-| walls-corridor  | Y
-| stairs-corridor  | Y
+| 任务                    | 视觉
+|-----------------------| --- |
+| 站立 stand              | N
+| 走路 walk               | N
+| 跑步 run                | N
+| 过道 corridor           | Y
+| 跨栏过道 hurdles-corridor | Y
+| gaps-corridor         | Y
+| walls-corridor        | Y
+| 楼梯过道 stairs-corridor  | Y
 
 可以通过指定`train.py` and`evaluation.py`的`task`参数来运行。
 
 ## 示例用法
 
-我们提供了有关如何评估我们提供的Puppeteer模型检查点的示例，以及如何在下面训练自己的木偶代理。
+我们提供了有关如何评估我们提供的 Puppeteer 模型检查点的示例，以及如何在下面训练自己的木偶代理。
 
 ### 评估
 
@@ -66,10 +66,13 @@ cd docker && docker build . -t <user>/puppeteer:1.0.0
 
 ```shell
 python evaluate.py task=corridor low_level_fp=/path/to/tracking.pt checkpoint=/path/to/corridor-1.pt
-# python evaluate.py task=corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/corridor-1.pt
+# 增加了保存视频
+# python evaluate.py task=corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/corridor-1.pt save_video=true
 python evaluate.py task=gaps-corridor low_level_fp=/path/to/tracking.pt checkpoint=/path/to/gaps-1.pt
-# python evaluate.py task=gaps-corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/gaps-1.pt
+# python evaluate.py task=gaps-corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/gaps-1.pt save_video=true
 # 下载的模型位于：D:/work/workspace/locomotion/human/model/gaps-corridor-1.pt
+# Windows 平台下每秒刷新一次查看GPU使用率
+nvidia-smi -l 1
 ```
 
 所有高级检查点都经过相同的低级检查点训练。有关参数的完整列表，请参见`config.yaml`。
@@ -77,7 +80,7 @@ python evaluate.py task=gaps-corridor low_level_fp=/path/to/tracking.pt checkpoi
 
 ### 训练
 
-请参阅下面的示例，介绍了如何训练木偶的低级和高级世界模型。我们建议在`config.yaml`中配置[权重和偏置](https://wandb.ai) (`wandb`) 以跟踪训练进度。
+请参阅下面的示例，介绍了如何训练木偶的低级和高级世界模型。我们建议在`config.yaml`中配置[权重和偏置](https://wandb.ai) (`wandb`) 以跟踪训练进度 （训练代码可以网页上查看，评估代码没有。测试代码请参考 [wandb_demo.py](./wandb_demo.py)）。
 
 
 配置数据集

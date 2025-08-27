@@ -39,14 +39,14 @@ print(torch.cuda.is_available())
 @hydra.main(config_name='config', config_path='.')
 def evaluate(cfg: dict):
 	"""
-	Script for evaluating a single-task / multi-task TD-MPC2 checkpoint.
+	评估单任务/多任务 TD-MPC2 检查点的脚本
 
-	Most relevant args:
-		`task`: task name (or mt30/mt80 for multi-task evaluation)
-		`checkpoint`: path to model checkpoint to load
-		`eval_episodes`: number of episodes to evaluate on per task (default: 10)
-		`save_video`: whether to save a video of the evaluation (default: True)
-		`seed`: random seed (default: 1)
+	最相关的参数：
+		`task`: 任务名 (或者对于多任务评估选择 mt30/mt80 )
+		`checkpoint`: 加载模型检查点的路径
+		`eval_episodes`: 在每个任务上评估的轮次数目 (默认: 10)
+		`save_video`: 是否保存评估的视频 (默认：True)
+		`seed`: 随机种子 (默认：1)
 	
 	See config.yaml for a full list of args.
 

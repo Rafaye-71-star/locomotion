@@ -65,8 +65,8 @@ dropout: 0.01               # dropout Q-function rate (float)
 simnorm_dim: 8              # simnorm group dimension (int)
 
 # logging
-wandb_project: ???          # wandb project name (str)
-wandb_entity: ???           # wandb entity name (str)
+wandb_project: locomotion          # wandb project name (str)
+wandb_entity: openhutb           # wandb entity name (str)
 wandb_silent: false         # whether to silence wandb prints (bool)
 use_wandb: true             # whether to use wandb (bool)
 save_csv: false             # whether to save csv logs (bool)
