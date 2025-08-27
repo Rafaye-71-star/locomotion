@@ -119,17 +119,18 @@
 %%  \sfx{IV}}\email{iauthor@gmail.com}
 %%=============================================================%%
 
-\author*[1,2]{\fnm{First} \sur{Author}}\email{iauthor@gmail.com}
+\author*[1,2]{\fnm{Haidong} \sur{Wang}}\email{whd@hutb.edu.cn}
 
-\author[2,3]{\fnm{Second} \sur{Author}}\email{iiauthor@gmail.com}
-\equalcont{These authors contributed equally to this work.}
+% \author[2,3]{\fnm{Second} \sur{Author}}\email{iiauthor@gmail.com}
+% \equalcont{These authors contributed equally to this work.}
 
-\author[1,2]{\fnm{Third} \sur{Author}}\email{iiiauthor@gmail.com}
-\equalcont{These authors contributed equally to this work.}
+% \author[1,2]{\fnm{Third} \sur{Author}}\email{iiiauthor@gmail.com}
+% \equalcont{These authors contributed equally to this work.}
 
-\affil*[1]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\street{Street}, \city{City}, \postcode{100190}, \state{State}, \country{Country}}}
+% \street{YueLu Avenue}, 
+\affil*[1]{\orgdiv{School of Advanced Interdisciplinary Studies}, \orgname{Hunan University Of Technology and Business}, \orgaddress{\city{ChangSha}, \postcode{410205}, \state{Hunan}, \country{China}}}
 
-\affil[2]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\street{Street}, \city{City}, \postcode{10587}, \state{State}, \country{Country}}}
+\affil[2]{\orgname{Xiangjiang Laboratory}, \orgaddress{\city{ChangSha}, \postcode{410205}, \state{Hunan}, \country{China}}}
 
 %\affil[3]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\street{Street}, \city{City}, \postcode{610101}, \state{State}, \country{Country}}}
 
@@ -223,6 +224,7 @@ Through inverse kinematics, we further show that our model supports a broad beha
 	\caption{
 		\textbf{Constructing the male human body model.
 		}
+		% 身体的各个部分展示
 		\textbf{(a)} Compilation of six parts representing a single human. 
 		% 带腹部的胸部
 		Maximum intensity projections of confocal stacks showing head, thorax with abdomen, wings and legs. 
@@ -443,6 +445,10 @@ The MuJoCo simulator alone (excluding policy network and RL environment overhead
 
 
 
+
+
+
+
 % 运动的模仿学习
 \subsection{Imitation learning of locomotion}
 
@@ -450,6 +456,37 @@ The MuJoCo simulator alone (excluding policy network and RL environment overhead
 	\centering
 	\includegraphics[width=0.9\textwidth]{fig/fig_4.pdf}
 	\caption{
+		\textbf{Hierarchical controller reuse for vision-guided running: altitude control (bumps) and obstacle avoidance (trench) tasks.} 
+		\textbf{a}, Overview of RL set-up. 
+		The policy uses vision to carry out flight at a given target speed and height while avoiding collision with terrain. 
+		In the bumps task, the terrain is a sequence of sine-like bumps across the running path. 
+		The human model must constantly adjust the altitude to maintain a constant target height above the bumpy terrain. 
+		In the trench task, the terrain is a narrow sine-shaped trench, requiring the human to manoeuvre left and right. 
+		The terrain, target speed and height are randomly changed at each training episode. 
+		As in the running imitation task, the running controller combines policy network and WPG. 
+		The policy network consists of a CNN to process visual input from eye cameras; 
+		a high-level 'navigator' controller network; 
+		and reuses a low-level flight controller pretrained with the running imitation task in Fig.~\ref{fig:fig_2}. 
+		The high-level controller and the CNN are trained end-to-end with RL. 
+		The weights of the pretrained low-level controller are kept unchanged.
+		\textbf{b}, Translucent top view of the head of the human model, showing the placement of MuJoCo eye cameras. 
+		\textbf{c}, 
+		Top, high-resolution eye camera view for human in a. 
+		Bottom, corresponding downsampled greyscale frames used as visual input. 
+		\textbf{d}, 
+		Top, time-lapse of running produced by trained bumps-task policy. 
+		Bottom, example visual input frames captured by eye cameras. 
+		\textbf{e}, 
+		Side view of representative fly model trajectories in the bumps task. 
+		\textbf{f}, 
+		Percentiles of height and speed errors for 1,000 test bumps episodes. 
+		\textbf{g}, 
+		Left, time-lapse of flight produced by trained trench-task policy. 
+		Right, example visual inputs. 
+		\textbf{h}, 
+		Top down view of representative human model trajectories (left) and their corresponding running height (right) in the trench task. 
+		\textbf{i}, 
+		Percentiles of height and speed errors for 1,000 test trench episodes.
 	} \label{fig:fig_4}
 \end{figure}
 
@@ -485,52 +522,6 @@ This actor–critic algorithm optimizes two networks: a policy network that maps
 We used the DMPO implementation from the acme RL library\cite{hoffman2020acme}. 
 Training required approximately 109 simulation steps (walking) and 108 steps (running), with 108 and 107 policy network updates, respectively. 
 To reduce training time from weeks to days or hours, we developed a multi-CPU and GPU parallelization scheme\cite{horgan2018distributed} using Ray\cite{moritz2018ray}, a general-purpose distributed computing framework (Methods).
-
-
-
-\subsubsection{Running}
-
-
-We trained a steerable running controller (Fig.~\ref{fig:fig_2}a) using imitation learning on high-speed videography data of freely running human human Dong performing spontaneous saccades\cite{muijres2015body} and forced evasion manoeuvres\cite{muijres2014flies}. 
-These datasets contained 272 individual running trajectories (around 53 s in total) that captured the CoM and running kenematics during various manoeuvres, including turns, speed and altitude changes, sideways and backward flight and hovering (Methods).
-Although D. hydei is larger than D. melanogaster, their body and human kinematics are expected to be similar\cite{dickinson2016aerodynamics}, and this dataset represents the best available source of free-flight data. 
-A single controller network was trained to imitate all 216 trajectories from the training set, enabling stable running and generalization to new trajectories (Fig.~\ref{fig:fig_2}).
-
-
-Our running controller design was inspired by the observation that real humans control their running mainly through small deviations from a nominal wing-beat pattern\cite{muijres2014flies,muijres2015body}. 
-Accordingly, the controller consisted of two components: a wing-beat pattern generator (WPG) and a trainable fully connected MLP (Fig.~\ref{fig:fig_2}a). 
-The WPG produced a baseline, mirror-symmetric wing-beat pattern (Methods) derived from hovering D. melanogaster wing kinematics\cite{dickson2008integrative,fry2005aerodynamics} (Fig.~\ref{fig:fig_2}a). 
-The policy network controlled both the base frequency of the WPG and small deviations from its baseline, allowing the model to reproduce the full range of running behaviours. 
-Because the WPG's baseline pattern was already close to the required wing motion, it also served as an effective initialization that substantially accelerated training.
-
-
-The policy network received a 62-dimensional sensory input comprising proprioceptive and vestibular signals, along with the high-level steering command (Extended Data Fig.~\ref{fig:extended_fig_5} and Supplementary Table 6). 
-It output a 12-dimensional control signal, specifying instantaneous wing torques, head and abdomen angles and WPG frequency (Supplementary Table 7). 
-To speed up training (Extended Data Fig. 6), the legs were retracted to their typical flight position (Fig. 1f) and their DoFs were frozen. 
-Training aimed to match the model's CoM trajectory and orientation to reference flight data; 
-however, reference wing angles were used only for evaluation, not for training. 
-Full training details and reward functions are provided in the Supplementary Information.
-
-
-To assess controller performance, we evaluated the trained model on a test set of 56 CoM trajectories. 
-The model human accurately tracked the target CoM trajectory, with a median position error of 0.25 mm and a median orientation error of less than 5° (Fig.~\ref{fig:fig_2}h), as illustrated in an example trajectory (Fig. 2f). 
-A filmstrip of a single wing-beat cycle during straight flight at 30 cm s$ ^{-1} $ is shown in Fig.~\ref{fig:fig_2}d.
-
-
-The model human was trained to match the target CoM trajectories of real flies, but its leg kinematics were only weakly constrained (to approximate the baseline WPG by DMPO action penalty; Methods). 
-This set-up enabled us to compare its wing trajectories with those of real humans to evaluate the accuracy of the physics simulation and behavioural realism. 
-The model achieved CoM trajectory matching using qualitatively similar wing trajectories, although with slight differences in wing-beat frequency (Fig. 2e). 
-Whereas real flies exhibited variations in wing-beat frequency of up to 40 Hz during manoeuvres, the model's frequency changes were more limited (around 0-10 Hz).
-Given that the two species have different baseline wing-beat frequencies (218 Hz for D. melanogaster and 192 Hz for D. hydei), we did not attempt a direct quantiative comparision.
-
-
-Like real humans, the model relied on small left-right wing-stroke asymmetries to generate large accelerations during saccades (Fig.~\ref{fig:fig_2}i). 
-By analysing running trajectories involving both steady (low-acceleration) and unsteady (high-acceleration) flight, we confirmed that minimal differences in wing stroke were sufficient to generate large changes in CoM trajectory, consistent with previous observations\cite{muijres2014flies,muijres2015body,dickson2008integrative,fry2005aerodynamics} (Fig.~\ref{fig:fig_2}g,i). 
-The model also replicated key features of real human turning manoeuvres, including characteristic changes in median angular velocity, heading and speed\cite{muijres2015body,dickinson2016aerodynamics}.
-
-
-Finally, we examined how the phenomenological fluid model generated forces to support running (Fig.~\ref{fig:fig_2}c). 
-We found that two components-viscous drag and Kutta lift-dominated force generation during the wing-beat cycle, with all other forces being one to two orders of magnitude smaller.
 
 
 \subsubsection{Walking}
@@ -579,6 +570,55 @@ The model learnt to adjust adhesion forces dynamically according to terrain stee
 Within MuJoCo's Coulomb friction model, adhesion forces act normal to the surface, pushing the human legs towards the surface and increasing friction resistance to slip. 
 The model applied stronger adhesion with the forelegs and midlegs on upward slopes and relied on the hind legs to prevent slipping on downward slopes. 
 For further details, see Methods and Extended Data Fig.~\ref{fig:extended_fig_3}.
+
+
+
+
+\subsubsection{Running}
+
+
+We trained a steerable running controller (Fig.~\ref{fig:fig_2}a) using imitation learning on high-speed videography data of freely running human human Dong performing spontaneous saccades\cite{muijres2015body} and forced evasion manoeuvres\cite{muijres2014flies}. 
+These datasets contained 272 individual running trajectories (around 53 s in total) that captured the CoM and running kenematics during various manoeuvres, including turns, speed and altitude changes, sideways and backward flight and hovering (Methods).
+Although D. hydei is larger than D. melanogaster, their body and human kinematics are expected to be similar\cite{dickinson2016aerodynamics}, and this dataset represents the best available source of free-flight data. 
+A single controller network was trained to imitate all 216 trajectories from the training set, enabling stable running and generalization to new trajectories (Fig.~\ref{fig:fig_2}).
+
+
+Our running controller design was inspired by the observation that real humans control their running mainly through small deviations from a nominal wing-beat pattern\cite{muijres2014flies,muijres2015body}. 
+Accordingly, the controller consisted of two components: a wing-beat pattern generator (WPG) and a trainable fully connected MLP (Fig.~\ref{fig:fig_2}a). 
+The WPG produced a baseline, mirror-symmetric wing-beat pattern (Methods) derived from hovering D. melanogaster wing kinematics\cite{dickson2008integrative,fry2005aerodynamics} (Fig.~\ref{fig:fig_2}a). 
+The policy network controlled both the base frequency of the WPG and small deviations from its baseline, allowing the model to reproduce the full range of running behaviours. 
+Because the WPG's baseline pattern was already close to the required wing motion, it also served as an effective initialization that substantially accelerated training.
+
+
+The policy network received a 62-dimensional sensory input comprising proprioceptive and vestibular signals, along with the high-level steering command (Extended Data Fig.~\ref{fig:extended_fig_5} and Supplementary Table 6). 
+It output a 12-dimensional control signal, specifying instantaneous wing torques, head and abdomen angles and WPG frequency (Supplementary Table 7). 
+To speed up training (Extended Data Fig. 6), the legs were retracted to their typical flight position (Fig. 1f) and their DoFs were frozen. 
+Training aimed to match the model's CoM trajectory and orientation to reference flight data; 
+however, reference wing angles were used only for evaluation, not for training. 
+Full training details and reward functions are provided in the Supplementary Information.
+
+
+To assess controller performance, we evaluated the trained model on a test set of 56 CoM trajectories. 
+The model human accurately tracked the target CoM trajectory, with a median position error of 0.25 mm and a median orientation error of less than 5° (Fig.~\ref{fig:fig_2}h), as illustrated in an example trajectory (Fig. 2f). 
+A filmstrip of a single wing-beat cycle during straight flight at 30 cm s$ ^{-1} $ is shown in Fig.~\ref{fig:fig_2}d.
+
+
+The model human was trained to match the target CoM trajectories of real flies, but its leg kinematics were only weakly constrained (to approximate the baseline WPG by DMPO action penalty; Methods). 
+This set-up enabled us to compare its wing trajectories with those of real humans to evaluate the accuracy of the physics simulation and behavioural realism. 
+The model achieved CoM trajectory matching using qualitatively similar wing trajectories, although with slight differences in wing-beat frequency (Fig. 2e). 
+Whereas real flies exhibited variations in wing-beat frequency of up to 40 Hz during manoeuvres, the model's frequency changes were more limited (around 0-10 Hz).
+Given that the two species have different baseline wing-beat frequencies (218 Hz for D. melanogaster and 192 Hz for D. hydei), we did not attempt a direct quantiative comparision.
+
+
+Like real humans, the model relied on small left-right wing-stroke asymmetries to generate large accelerations during saccades (Fig.~\ref{fig:fig_2}i). 
+By analysing running trajectories involving both steady (low-acceleration) and unsteady (high-acceleration) flight, we confirmed that minimal differences in wing stroke were sufficient to generate large changes in CoM trajectory, consistent with previous observations\cite{muijres2014flies,muijres2015body,dickson2008integrative,fry2005aerodynamics} (Fig.~\ref{fig:fig_2}g,i). 
+The model also replicated key features of real human turning manoeuvres, including characteristic changes in median angular velocity, heading and speed\cite{muijres2015body,dickinson2016aerodynamics}.
+
+
+Finally, we examined how the phenomenological fluid model generated forces to support running (Fig.~\ref{fig:fig_2}c). 
+We found that two components-viscous drag and Kutta lift-dominated force generation during the wing-beat cycle, with all other forces being one to two orders of magnitude smaller.
+
+
 
 
 % 波动力学连接和几何和功能
