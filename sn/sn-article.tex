@@ -1328,6 +1328,48 @@ The individual force and torque components are described below.
 % 库塔升力
 \textbf{Kutta lift}
 
+The Kutta condition describes an effect that is valid also for potential (i.e. inviscid) flows. 
+For a body moving in a potential flow there are two stagnation points (a location in the flow field where the velocity is zero): 
+in the front, where the stream-lines separate to either sides of the body, 
+and in the rear, where they reconnect. 
+The Kutta condition is the observation that a moving body with a sharp rear edge will generate in the surrounding flow a circulation of sufficient strength to hold the rear stagnation point at the trailing edge. 
+In two-dimensional potential flow, the circulation due to the Kutta condition for a slender body can be estimated as $ \Gamma_K = C_K r_x || v || sin 2\alpha $. 
+Here $ C_K $ is a Kutta lift coefficient and $ \alpha $ is the angle between the velocity vector and its projection onto the surface. 
+The lift force per unit length can be computed with the Kutta-Joukowski theorem as $ f_K / l = \rho \Gamma \times \mathbf{v} $.
+
+
+% 库塔条件示意图
+\begin{figure}[!htb] 
+	\centering
+	\includegraphics[width=0.75\textwidth]{fig/supplementary_fig_1.png}
+	\caption{
+		Schematic of the Kutta condition. 
+		Blue lines are streamlines and the two magenta points are the stagnation points. 
+		The dividing streamline, which connects the two stagnation points, is marked in green. 
+		The dividing streamline and the body inscribe an area where the flow is said to be “separated” and recirculates within. 
+		This circulation produces an upward force acting on the plate.
+	}
+	\label{fig:supplementary_fig_1}
+\end{figure}
+
+In order to extend the lift force equation to three-dimensional motions, we consider the normal $ \mathbf{n}_{A, \mathbf{v}} = \{ \frac{r_y r_z}{r_x} v_x, \frac{r_z r_x}{r_y} v_y, \frac{r_x r_y}{r_z} v_z \} $ to the cross-section of the body which generates the body's projection $ A_\mathbf{v}^\text{proj} $ onto a plane normal to the velocity. 
+We use this direction to decompose  $ \mathbf{v} = \mathbf{v}_{||} + \mathbf{\bot} $ with $ \mathbf{v}_\bot = (\mathbf{v} \cdot \hat{\mathbf{n}}_{A,\mathbf{v}}) \hat{\mathbf{n}}_{A, \mathbf{v}} $ ($ \hat{\mathbf{n}}_{A, \mathbf{v}} $ is the unit vector). 
+We write the lift force as:
+%
+\begin{equation}\label{key}
+	\mathbf{f}_\text{K} = 
+		\frac{
+			C_K \rho A_\mathbf{v}^\text{proj}
+		}{
+			\| \mathbf{v} \|
+		}
+\end{equation}
+
+
+Note that the direction of $ \hat{\mathbf{n}}_{A, \mathbf{v}} $ differs from v only on the planes where the semi-axes of the body are unequal. 
+So for example, for spherical bodies $ \hat{\mathbf{n}}_{A, \mathbf{v}} \equiv \hat{\mathbf{v}}  $ and by construction $ \mathbf{f}_\text{K} = 0 $.
+
+
 % 马格努斯力是旋转物体在流体中运动时因压力差产生的横向作用力，其方向垂直于流体流动方向与物体旋转轴。
 \textbf{Magnus force}
 
