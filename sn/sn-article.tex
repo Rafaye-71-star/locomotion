@@ -216,6 +216,7 @@ Through inverse kinematics, we further show that our model supports a broad beha
 
 		
 
+% 肌肉骨骼
 \subsection{Body geometry model}
 
 \begin{figure}[!htb]
@@ -292,53 +293,8 @@ These joint models are simplified approximations, particularly for complex artic
 Joint angles corresponding to the resting pose (Fig.~\ref{fig:fig_1}d,e) and the running pose (Fig.~\ref{fig:fig_1}f) were estimated through visual inspection of videography.
 
 
-
-% 建模人体的物理
+% 物理 建模
 \subsection{Modelling body physics} \label{sec:preferred}
-
-\begin{figure}[!htb]
-	\centering
-	\includegraphics[width=1.0\textwidth]{fig/fig_2.pdf}
-	\caption{
-		\textbf{Running imitation.
-		}
-		\textbf{(a)} Overview of RL set-up. 
-		% CoM (Center of Mass) 在物理学中指一个物体所有质量的平均位置。
-		%在机器人、无人机等需要精确控制的设备中，了解CoM 的位置至关重要，因为它影响着设备的稳定性、运动控制等.﻿
-		A single policy network is trained to imitate the CoM position and body orientation across a dataset of 216 trajectories of freely running human (around 42 s in total).
-		The flight controller consists of a trainable MLP and a WPG. 
-		The motor command is the sum of the MLP and WPG outputs. 
-		Top right, one period of the fixed baseline wing-beat pattern produced by the WPG. 
-		% 灰色条带表示 下行冲程
-		Grey stripe indicates wing downstroke.
-		\textbf{(b)} % 脚的坐标系统和角度定义
-		Top, wing coordinate system and wing angle definition. 
-		Bottom, body coordinate system and example model sensory inputs: 
-		the direction to the goal CoM position and the gravity direction. 
-		\textbf{(c)} % 流体模型
-		Fluid model forces exerted on the left wing, 
-		and the corresponding wing kinematics, during a stable horizontal flight at 30 cm s $ ^{-1} $.
-		\textbf{(d)} % 跑步的脚步循环
-		Flimstrip of the model flying straight at 30 cm s$ ^{-1} $ during one full wing-beat cycle.
-		\textbf{(e)} % 折返跑时由真实跑步模型跑步所产生的腿动力学
-		Leg kinematics during a saccade manoeuvre produced by the model and real fly.
-		\textbf{(f)} % 通过现象学建模流体，腿部产生运动
-		Legs produce body movements through a phenomenologically modelled fluid. 
-		The real (black) and model (coloured) fly body pose while traversing a test trajectory. 
-		Circles, heads; lines, tails.
-		\textbf{(g)} % 折返跑时，真实和模型人的角速度、头部朝向、速度的对比
-		Median and percentiles of body angular velocity, heading and speed for real and model flies during test saccades. 
-		The trajectories are aligned to peak acceleration at $ t = 0 $. 
-		Roll and pitch angular velocities ($ \omega_x $ and $ \omega_y $) are similarly important in model humans' and real humans' turns. 
-		A small divergence between model and real occurs after the saccade. 
-		Solid lines, medians; shading, 25th–75th percentiles.
-		\textbf{(h)} % 56 个轨迹中模型和真实身体的重心和朝向误差对比
-		Percentiles of errors between the model and the corresponding real human's body CoM, and orientation for 56 test trajectories.
-		\textbf{(i)} % 模型和真实人 在稳定（小身体加速度）和非稳定（大身体加速度）时 脚(Stroke, Deviation, Rootation)的对比
-		Leg angles during steady (small body acceleration) and unsteady (large body acceleration) leg beats for model and real humans in the test set. 
-		Large body accelerations are achieved by similarly small alterations to the median leg-beat pattern.
-	} \label{fig:fig_2}
-\end{figure}
 
 
 The Blender model of the human's body geometry was imported into the Hutb physics engine through a multi-step process (Supplementary Information). 
@@ -373,39 +329,9 @@ The model is extendable, allowing for increased biological realism, such as musc
 
 
 
-% 几何模式限制神经网络激活
+% 建模 身体-环境 交互
+% 可以放在“建模物理”
 \subsection{Modelling body–environment interactions}\label{subsec2}
-
-
-\begin{figure}[!htb]
-	\centering
-	\includegraphics[width=1.0\textwidth]{fig/fig_3.pdf}
-	\caption{\textbf{Walking imitation.}
-	\textbf{a}, Overview of RL set-up. 
-	A single policy network is trained to imitate a dataset of 13,000 snippets (around 64 min in total) of freely walking real human. 
-	Full body movements are imitated, including tracking CoM position, body orientation and detailed leg movements.
-	\textbf{b}, % 模型和真实人体 身体重心和朝向的 对比
-	Percentiles of errors between the model and the corresponding real human's body CoM, and orientation for 3,200 test walking trajectories. 
-	\textbf{c}, % 步态的幻灯片
-	Filmstrip of the model walking straight at 2 cm s$ ^{-1} $ during one full leg cycle, with 8-ms steps between frames. 
-	\textbf{d}, % 4 种速度下的步态图
-	Gait diagrams of the fly model tracking synthetic fixed-speed straight-walking trajectories at four speeds. 
-	Black stripes indicate the swing phase of leg motion. 
-	For each speed, the average number of legs simultaneously in stance position (on the ground) is indicated. 
-	\textbf{e}, % 在站立时，同时使用腿的数目
-	Number of legs simultaneously in stance position averaged over walking snippet versus average walking speed in snippet.
-	Top, model tracking test set trajectories. 
-	Bottom, entire walking dataset. 
-	Inset, the distribution of average walking speeds per snippet in the dataset. 
-	\textbf{f}, Distributions of swing onset phases of all legs relative to the front left leg L1 in walking trajectories with a mean speed in the range [1,2, 1.7] cm s$ ^{-1} $.
-	Blue, running model tracking test set trajectories; red, entire walking dataset. 
-	Dashed lines indicate circular medians.
-	\textbf{g}, Learnt truning strategy.
-	Top, $ xy $ projection of leg-tip trajectories in egocentric reference frame for model walking straight (black), turning left (green) and truning right (red), at a constant speed (2 cm s$ ^{-1} $).
-	Leg-tip trajectories are shifted horizontally for clarity. 
-	Bottom, difference between (egocentric) left and right leg-tip swing length, averaged over all legs, at various walking speeds.
-	} \label{fig:fig_3}
-\end{figure}
 
 
 % MuJoCo 能够模拟：人体物体特性、环境交互（身体接触力、空气的流体交互、重力）
@@ -448,44 +374,42 @@ The MuJoCo simulator alone (excluding policy network and RL environment overhead
 % 运动的模仿学习
 \subsection{Imitation learning of locomotion}
 
-% 自定义幻灯片大小 -> 一定要选择确定适合大小
-\begin{figure}[!htb]
-	\centering
-	\includegraphics[width=1.0\textwidth]{fig/fig_4.pdf}
-	\caption{
-		\textbf{Hierarchical controller reuse for vision-guided running: altitude control (bumps) and obstacle avoidance (trench) tasks.} 
-		\textbf{a}, Overview of RL set-up. 
-		The policy uses vision to carry out flight at a given target speed and height while avoiding collision with terrain. 
-		In the bumps task, the terrain is a sequence of sine-like bumps across the running path. 
-		The human model must constantly adjust the altitude to maintain a constant target height above the bumpy terrain. 
-		In the trench task, the terrain is a narrow sine-shaped trench, requiring the human to manoeuvre left and right. 
-		The terrain, target speed and height are randomly changed at each training episode. 
-		As in the running imitation task, the running controller combines policy network and WPG. 
-		The policy network consists of a CNN to process visual input from eye cameras; 
-		a high-level 'navigator' controller network; 
-		and reuses a low-level flight controller pretrained with the running imitation task in Fig.~\ref{fig:fig_2}. 
-		The high-level controller and the CNN are trained end-to-end with RL. 
-		The weights of the pretrained low-level controller are kept unchanged.
-		\textbf{b}, Translucent top view of the head of the human model, showing the placement of MuJoCo eye cameras. 
-		\textbf{c}, 
-		Top, high-resolution eye camera view for human in a. 
-		Bottom, corresponding downsampled greyscale frames used as visual input. 
-		\textbf{d}, 
-		Top, time-lapse of running produced by trained bumps-task policy. 
-		Bottom, example visual input frames captured by eye cameras. 
-		\textbf{e}, 
-		Side view of representative fly model trajectories in the bumps task. 
-		\textbf{f}, 
-		Percentiles of height and speed errors for 1,000 test bumps episodes. 
-		\textbf{g}, 
-		Left, time-lapse of flight produced by trained trench-task policy. 
-		Right, example visual inputs. 
-		\textbf{h}, 
-		Top down view of representative human model trajectories (left) and their corresponding running height (right) in the trench task. 
-		\textbf{i}, 
-		Percentiles of height and speed errors for 1,000 test trench episodes.
-	} \label{fig:fig_4}
-\end{figure}
+
+% 性能 + 自然
+We aim to learn highly performant and "natural" policies for visual whole-body humanoid control in a data-driven manner using hierarchical world models.
+A key strength of our approach is that it can synthesize human-like motions without any explicit domain knowledge, reward design, nor skill primitives.
+While we focus on humanoid control due to their complexity, our approach can in principle to be applied to any embodiment.
+% 方法名
+Our method, dubbed \textit{Puppeteer}, consists of two distinct agents, both of which are implemented as TD-MPC2 world models and trained independently.
+Figure 2 provides an overview of our method.
+The two agents are designed as follows:
+
+\begin{itemize}
+	\item[1.] 
+	A low-level \textit{imitation} agents that takes a robot proprioceptive state $ \mathbf{q}_t $ and an abstract command $ c_t $ as input at time $ t $, and uses planning with a learned world model to synthesize a sequence of $ H $ control actions $ {a_t, a_{t+1}, ... a_{t+H}} $ that (approximately) obeys the abstract command.
+	\item[2.] 
+	A high-level \textit{pupeteering} agent that takes the same robot propioceptive state $ \mathbf{q}_t $ as input, as well as (optionally) auxiliary information and modalities such as RGB images $ \mathbf{v}_t $ or task-relevant information, and uses planning with a learned world model to synthesize a sequence of $ H $ high-level abstract commands $ {c_t, c_{t+1}, ..., c_{t+H}} $ for the low-level agent to execute.
+\end{itemize}
+
+A unique benefit of our approach is that a \textit{single imitation world can be (pre)trained and reused across all downstream tasks}.
+This is in contrast to much of prior work that eigher learn a large number (up to ~2600) of low-level policies, or train policies from scratch on each downstream task.
+The imitation and puppeteering world models are algorithmically identical (but differ in inputs/ouputs), and consist of the following 6 components:
+
+\begin{equation}\label{key}
+	\begin{aligned}
+		\text{Encoder} & \mathbf{z} = h(s) \\
+	\end{aligned}
+\end{equation}
+where $ \mathbf{z} $ is a latent state.
+Because we consider episoic MDPs with termination conditions, we additonally add a termination prediction head $ D $ that predicts the probability of termination conditioned on a latent state and action.
+Use of termination signals in the context of planning with a world model requires special care and has, to the best of our knowledge, not been explored in prior work;
+we introduce a novel method for this in Section \textit{Planning with termination conditions}.
+
+
+
+
+
+
 
 
 % RL 来控制
@@ -522,6 +446,38 @@ To reduce training time from weeks to days or hours, we developed a multi-CPU an
 
 
 \subsubsection{Walking}
+
+% 跟踪的代理
+% 模仿学习
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=1.0\textwidth]{fig/fig_2.pdf}
+	\caption{\textbf{Walking imitation.}
+		\textbf{a}, Overview of RL set-up. 
+		A single policy network is trained to imitate a dataset of 13,000 snippets (around 64 min in total) of freely walking real human. 
+		Full body movements are imitated, including tracking CoM position, body orientation and detailed leg movements.
+		\textbf{b}, % 模型和真实人体 身体重心和朝向的 对比
+		Percentiles of errors between the model and the corresponding real human's body CoM, and orientation for 3,200 test walking trajectories. 
+		\textbf{c}, % 步态的幻灯片
+		Filmstrip of the model walking straight at 2 cm s$ ^{-1} $ during one full leg cycle, with 8-ms steps between frames. 
+		\textbf{d}, % 4 种速度下的步态图
+		Gait diagrams of the fly model tracking synthetic fixed-speed straight-walking trajectories at four speeds. 
+		Black stripes indicate the swing phase of leg motion. 
+		For each speed, the average number of legs simultaneously in stance position (on the ground) is indicated. 
+		\textbf{e}, % 在站立时，同时使用腿的数目
+		Number of legs simultaneously in stance position averaged over walking snippet versus average walking speed in snippet.
+		Top, model tracking test set trajectories. 
+		Bottom, entire walking dataset. 
+		Inset, the distribution of average walking speeds per snippet in the dataset. 
+		\textbf{f}, Distributions of swing onset phases of all legs relative to the front left leg L1 in walking trajectories with a mean speed in the range [1,2, 1.7] cm s$ ^{-1} $.
+		Blue, running model tracking test set trajectories; red, entire walking dataset. 
+		Dashed lines indicate circular medians.
+		\textbf{g}, Learnt truning strategy.
+		Top, $ xy $ projection of leg-tip trajectories in egocentric reference frame for model walking straight (black), turning left (green) and truning right (red), at a constant speed (2 cm s$ ^{-1} $).
+		Leg-tip trajectories are shifted horizontally for clarity. 
+		Bottom, difference between (egocentric) left and right leg-tip swing length, averaged over all legs, at various walking speeds.
+	} \label{fig:fig_3}
+\end{figure}
 
 % 肌肉驱动的人类跑步模拟：https://simtk.org/projects/runningsim/
 
@@ -574,6 +530,51 @@ For further details, see Methods and Extended Data Fig.~\ref{fig:extended_fig_3}
 \subsubsection{Running}
 
 
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=1.0\textwidth]{fig/fig_3.pdf}
+	\caption{
+		\textbf{Running imitation.
+		}
+		\textbf{(a)} Overview of RL set-up. 
+		% CoM (Center of Mass) 在物理学中指一个物体所有质量的平均位置。
+		%在机器人、无人机等需要精确控制的设备中，了解CoM 的位置至关重要，因为它影响着设备的稳定性、运动控制等.﻿
+		A single policy network is trained to imitate the CoM position and body orientation across a dataset of 216 trajectories of freely running human (around 42 s in total).
+		The flight controller consists of a trainable MLP and a WPG. 
+		The motor command is the sum of the MLP and WPG outputs. 
+		Top right, one period of the fixed baseline wing-beat pattern produced by the WPG. 
+		% 灰色条带表示 下行冲程
+		Grey stripe indicates wing downstroke.
+		\textbf{(b)} % 脚的坐标系统和角度定义
+		Top, wing coordinate system and wing angle definition. 
+		Bottom, body coordinate system and example model sensory inputs: 
+		the direction to the goal CoM position and the gravity direction. 
+		\textbf{(c)} % 流体模型
+		Fluid model forces exerted on the left wing, 
+		and the corresponding wing kinematics, during a stable horizontal flight at 30 cm s $ ^{-1} $.
+		\textbf{(d)} % 跑步的脚步循环
+		Flimstrip of the model flying straight at 30 cm s$ ^{-1} $ during one full wing-beat cycle.
+		\textbf{(e)} % 折返跑时由真实跑步模型跑步所产生的腿动力学
+		Leg kinematics during a saccade manoeuvre produced by the model and real fly.
+		\textbf{(f)} % 通过现象学建模流体，腿部产生运动
+		Legs produce body movements through a phenomenologically modelled fluid. 
+		The real (black) and model (coloured) fly body pose while traversing a test trajectory. 
+		Circles, heads; lines, tails.
+		\textbf{(g)} % 折返跑时，真实和模型人的角速度、头部朝向、速度的对比
+		Median and percentiles of body angular velocity, heading and speed for real and model flies during test saccades. 
+		The trajectories are aligned to peak acceleration at $ t = 0 $. 
+		Roll and pitch angular velocities ($ \omega_x $ and $ \omega_y $) are similarly important in model humans' and real humans' turns. 
+		A small divergence between model and real occurs after the saccade. 
+		Solid lines, medians; shading, 25th–75th percentiles.
+		\textbf{(h)} % 56 个轨迹中模型和真实身体的重心和朝向误差对比
+		Percentiles of errors between the model and the corresponding real human's body CoM, and orientation for 56 test trajectories.
+		\textbf{(i)} % 模型和真实人 在稳定（小身体加速度）和非稳定（大身体加速度）时 脚(Stroke, Deviation, Rootation)的对比
+		Leg angles during steady (small body acceleration) and unsteady (large body acceleration) leg beats for model and real humans in the test set. 
+		Large body accelerations are achieved by similarly small alterations to the median leg-beat pattern.
+	} \label{fig:fig_2}
+\end{figure}
+
+
 We trained a steerable running controller (Fig.~\ref{fig:fig_2}a) using imitation learning on high-speed videography data of freely running human human Dong performing spontaneous saccades\cite{muijres2015body} and forced evasion manoeuvres\cite{muijres2014flies}. 
 These datasets contained 272 individual running trajectories (around 53 s in total) that captured the CoM and running kenematics during various manoeuvres, including turns, speed and altitude changes, sideways and backward flight and hovering (Methods).
 Although D. hydei is larger than D. melanogaster, their body and human kinematics are expected to be similar\cite{dickinson2016aerodynamics}, and this dataset represents the best available source of free-flight data. 
@@ -619,7 +620,52 @@ We found that two components-viscous drag and Kutta lift-dominated force generat
 
 
 % 参考层次的世界模型（对于高维控制）
+% fig4: 走路的层次控制
+% fig5: 跑步的层次控制
 \subsection{Hierarchical vision-guided walking}
+
+
+
+
+
+% 自定义幻灯片大小 -> 一定要选择确定适合大小
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=1.0\textwidth]{fig/fig_4.pdf}
+	\caption{
+		\textbf{Hierarchical controller reuse for vision-guided running: altitude control (bumps) and obstacle avoidance (trench) tasks.} 
+		\textbf{a}, Overview of RL set-up. 
+		The policy uses vision to carry out flight at a given target speed and height while avoiding collision with terrain. 
+		In the bumps task, the terrain is a sequence of sine-like bumps across the running path. 
+		The human model must constantly adjust the altitude to maintain a constant target height above the bumpy terrain. 
+		In the trench task, the terrain is a narrow sine-shaped trench, requiring the human to manoeuvre left and right. 
+		The terrain, target speed and height are randomly changed at each training episode. 
+		As in the running imitation task, the running controller combines policy network and WPG. 
+		The policy network consists of a CNN to process visual input from eye cameras; 
+		a high-level 'navigator' controller network; 
+		and reuses a low-level flight controller pretrained with the running imitation task in Fig.~\ref{fig:fig_2}. 
+		The high-level controller and the CNN are trained end-to-end with RL. 
+		The weights of the pretrained low-level controller are kept unchanged.
+		\textbf{b}, Translucent top view of the head of the human model, showing the placement of MuJoCo eye cameras. 
+		\textbf{c}, 
+		Top, high-resolution eye camera view for human in a. 
+		Bottom, corresponding downsampled greyscale frames used as visual input. 
+		\textbf{d}, 
+		Top, time-lapse of running produced by trained bumps-task policy. 
+		Bottom, example visual input frames captured by eye cameras. 
+		\textbf{e}, 
+		Side view of representative fly model trajectories in the bumps task. 
+		\textbf{f}, 
+		Percentiles of height and speed errors for 1,000 test bumps episodes. 
+		\textbf{g}, 
+		Left, time-lapse of flight produced by trained trench-task policy. 
+		Right, example visual inputs. 
+		\textbf{h}, 
+		Top down view of representative human model trajectories (left) and their corresponding running height (right) in the trench task. 
+		\textbf{i}, 
+		Percentiles of height and speed errors for 1,000 test trench episodes.
+	} \label{fig:fig_4}
+\end{figure}
 
 
 %\begin{figure}[!htb]
