@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 def make_env(cfg):
 	"""
-	Make an environment for TD-MPC2 experiments.
+	为 TD-MPC2 实验创建环境
 	"""
 	gym.logger.set_level(40)
 	env = None

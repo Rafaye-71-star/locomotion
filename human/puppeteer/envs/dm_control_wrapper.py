@@ -1,8 +1,7 @@
 """
-Wraps the dm_control environment and task into a Gym env. The task assumes
-the presence of a CMU position-controlled humanoid.
+将 dm_control 环境和任务 包裹在 Gym 环境中。任务假设 CMU 位置控制的人形代理存在。
 
-Adapted from:
+改编自：
 https://github.com/denisyarats/dmc2gym/blob/master/dmc2gym/wrappers.py
 """
 import os.path as osp

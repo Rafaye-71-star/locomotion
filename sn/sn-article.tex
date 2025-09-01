@@ -293,8 +293,7 @@ Joint angles corresponding to the resting pose (Fig.~\ref{fig:fig_1}d,e) and the
 
 
 
-% 激活
-% 在未训练的网络中有 类别 选择性偏好特征
+% 建模人体的物理
 \subsection{Modelling body physics} \label{sec:preferred}
 
 \begin{figure}[!htb]
@@ -446,15 +445,13 @@ The MuJoCo simulator alone (excluding policy network and RL environment overhead
 
 
 
-
-
-
 % 运动的模仿学习
 \subsection{Imitation learning of locomotion}
 
+% 自定义幻灯片大小 -> 一定要选择确定适合大小
 \begin{figure}[!htb]
 	\centering
-	\includegraphics[width=0.9\textwidth]{fig/fig_4.pdf}
+	\includegraphics[width=1.0\textwidth]{fig/fig_4.pdf}
 	\caption{
 		\textbf{Hierarchical controller reuse for vision-guided running: altitude control (bumps) and obstacle avoidance (trench) tasks.} 
 		\textbf{a}, Overview of RL set-up. 
@@ -621,7 +618,7 @@ We found that two components-viscous drag and Kutta lift-dominated force generat
 
 
 
-% 波动力学连接和几何和功能
+% 参考层次的世界模型（对于高维控制）
 \subsection{Hierarchical vision-guided walking}
 
 

@@ -48,9 +48,9 @@ def evaluate(cfg: dict):
 		`save_video`: 是否保存评估的视频 (默认：True)
 		`seed`: 随机种子 (默认：1)
 	
-	See config.yaml for a full list of args.
+	完整的参数列表请查看 config.yaml
 
-	Example usage:
+	示例使用：
 	````
 		$ python evaluate.py task=dog-run checkpoint=/path/to/dog-1.pt save_video=true
 	```
@@ -62,15 +62,15 @@ def evaluate(cfg: dict):
 	print(colored(f'Task: {cfg.task}', 'blue', attrs=['bold']))
 	print(colored(f'Checkpoint: {cfg.checkpoint}', 'blue', attrs=['bold']))
 
-	# Make environment
+	# 创建环境
 	env = make_env(cfg)
 
-	# Load agent
+	# 加载智能体
 	agent = TDMPC2(cfg)
 	assert os.path.exists(cfg.checkpoint), f'Checkpoint {cfg.checkpoint} not found! Must be a valid filepath.'
 	agent.load(cfg.checkpoint)
 	
-	# Evaluate
+	# 评估
 	print(colored(f'Evaluating agent on {cfg.task}:', 'yellow', attrs=['bold']))
 	print(f'Evaluation episodes: {cfg.eval_episodes}')
 	if cfg.save_video:

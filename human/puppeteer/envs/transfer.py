@@ -67,7 +67,7 @@ TASKS = {
 
 class TransferWrapper(gym.Wrapper):
 	"""
-	Wrapper for hierarchical transfer tasks.
+	层次迁移任务的封装器
 	"""
 
 	def __init__(self, env, cfg):
@@ -75,19 +75,19 @@ class TransferWrapper(gym.Wrapper):
 		self.cfg = cfg
 		self.low_level_cfg = deepcopy(cfg)
 		
-		if self.cfg.low_level_fp is not None: # use low-level policy
-			# modify cfg to match low-level policy
+		if self.cfg.low_level_fp is not None: # 使用低层策略
+			# 修改配置 cfg 来匹配底层策略
 			state_dict = torch.load(cfg.low_level_fp, map_location='cpu')
 			self.low_level_cfg.obs = 'state'
 			self.low_level_cfg.obs_shape = {'state': (state_dict['model']['_encoder.state.0.weight'].size(1),)}
-			self.low_level_cfg.action_dim = 56
+			self.low_level_cfg.action_dim = 56  # 使用的是 56 自由度 CMU 人形机器人
 
-			# load low-level policy
+			# 加载低层策略
 			self.low_level_policy = TDMPC2(self.low_level_cfg)
 			self.low_level_policy.load(state_dict)
 			self.low_level_policy.model.eval()
 
-			# redefine action space
+			# 重新定义动作空间
 			self.action_space = gym.spaces.Box(
 				low=-1, high=1, shape=(15,), dtype=np.float32
 			)
@@ -107,7 +107,7 @@ class TransferWrapper(gym.Wrapper):
 			if k in obs:
 				high_level_obs[k] = obs[k]
 		if self.cfg.obs == 'rgb' and 'walker/egocentric_camera' in high_level_obs:
-			# replace egocentric camera key with third-person camera rendering
+			# 使用第三人称相机渲染来放置以自我为空心的相机 key
 			high_level_obs['walker/egocentric_camera'] = self.render(height=64, width=64).copy()
 		return low_level_obs, high_level_obs
 
@@ -118,15 +118,15 @@ class TransferWrapper(gym.Wrapper):
 		return obs
 
 	def step(self, action):
-		if self.cfg.low_level_fp is not None: # use low-level policy
+		if self.cfg.low_level_fp is not None: # 使用低层策略
 			action = action * self.cfg.action_scale
 
-			# get low-level observation
+			# 获得低层观测(observation)
 			low_level_obs = deepcopy(self._low_level_obs)
 			low_level_obs['walker/reference_appendages_pos'] = low_level_obs['walker/appendages_pos'] + action
 			low_level_obs = torch.from_numpy(flatten_dict(low_level_obs))
 
-			# get low-level action
+			# 获得低层动作
 			action = self.low_level_policy.act(low_level_obs, t0=self._t==0, eval_mode=True)
 
 		obs, reward, done, info = self.env.step(action)
@@ -141,7 +141,7 @@ class TransferWrapper(gym.Wrapper):
 
 def make_env(cfg):
 	"""
-	Make CMU Humanoid environment for transfer tasks.
+	为迁移任务制作 CMU 人形环境
 	"""
 	if cfg.task not in TASKS:
 		raise ValueError('Unknown task:', cfg.task)
