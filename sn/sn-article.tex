@@ -70,6 +70,7 @@
 
 \usepackage{subfigure}  % 使用子图（多个图凑九宫格）
 
+
 %%%%%=============================================================================%%%%
 %%%%  Remarks: This template is provided to aid authors with the preparation
 %%%%  of original research articles intended for submission to journals published 
@@ -397,18 +398,38 @@ The imitation and puppeteering world models are algorithmically identical (but d
 
 \begin{equation}\label{key}
 	\begin{aligned}
-		\text{Encoder} & \mathbf{z} = h(s) \\
+		& \text{Encoder} & \mathbf{z} = h(s) &  \quad \triangleright \ \text{Encodes state into a latent embedding} \\
+		& \text{Latent dynamics} & \mathbf{z}' = d(\mathbf{z}, \mathbf{a}) & \quad \triangleright \ \text{Predicts next latent state} \\
+		& \text{Reward} & \hat{r} = R(\mathbf{z}, \mathbf{a})  & \quad \triangleright \ \text{Predicts reward} r \text{of a state transition} \\
+		& \text{Termination} & \hat{\delta} = D(\mathbf{z}, \mathbf{a}) & \quad \triangleright \ \text{Predicts probability of termination} \\
+		& \text{Termination value} & \hat{q} = Q(\mathbf{z}, \mathbf{a}) & \quad \triangleright \ \text{Predicts discounted sum of rewards} \\
+		& \text{Policy prior} & \hat{\mathbf{a}} = p(\mathbf{z}) & \quad \triangleright \ \text{Predicts an action } \mathbf{a}^* \text{that maximizes} Q
 	\end{aligned}
 \end{equation}
 where $ \mathbf{z} $ is a latent state.
 Because we consider episoic MDPs with termination conditions, we additonally add a termination prediction head $ D $ that predicts the probability of termination conditioned on a latent state and action.
 Use of termination signals in the context of planning with a world model requires special care and has, to the best of our knowledge, not been explored in prior work;
 we introduce a novel method for this in Section \textit{Planning with termination conditions}.
+In the following, we describe the two agents and their interplay in the context of visual whole-body humanoid control.
 
 
+% 3.1 低层模仿世界模型
+We first train the low-level imitation world model independently from the high-level agent and any potential downstream task.
+We leverage pre-existing human MoCap data retargeted to the 56-DoF "CMU Humanoid" embodiment during training of the imitation model, which (as we will later show empirically) implicitly encodes human motion priors.
+% 通过随机采样学习样本，而不是之前文献描述的学习每一个片段和技能原语
+Specifically, we train our imitation world model by sampling $ (\mathbf{s}_t, \mathbf{a}_t, r_t, \mathbf{s}_{t+1}, ..., r_H) $ sequences from MoCapAct, an offline dataset that consists of noisy, suboptimal rollouts from existing policies trained to track reference motion (836 MoCap clips).
+This is contrast to prior literature that learn per-clip policies or skill primitives.
 
 
-
+Observations include humanoid proprioceptive information $ \mathbf{q}_t $ at time $ t $, as well as a reference motion (command) $ c_t $ to track.
+During training of the imitation policy, we let $ \mathbf{c}_t = (\mathbf{q}_{t+1...t+H}^\text{ref}) $ where $ \mathbf{q}^\text{ref} $ corresponds to relative end-effector (head, hands, feet) positions of the sampled reference motion at a future timestep;
+during downstream tasks, we train the high-level agent to output (via planning) commands $ \mathbf{c} $ for the low-level agent to track.
+Figure~\ref{fig:fig_2} illustrates our low-dimensional reference; 
+The controllable humanoid tracks end-effector positions of a reference motion.
+We label all transitions using the reward function.
+% 离线+在线数据 训练
+To improve state-action coverage of the imitation world model, we train with a combination of offline data and online interactions, maintaining a separate replay buffer for online interaction data and sampling offline/online data with 50\%/50\% ratio in each gradient update.
+We find this to be crucial for tracking performance when training a single world model on a large number of MoCap clips.
 
 
 
@@ -476,7 +497,7 @@ To reduce training time from weeks to days or hours, we developed a multi-CPU an
 		Top, $ xy $ projection of leg-tip trajectories in egocentric reference frame for model walking straight (black), turning left (green) and truning right (red), at a constant speed (2 cm s$ ^{-1} $).
 		Leg-tip trajectories are shifted horizontally for clarity. 
 		Bottom, difference between (egocentric) left and right leg-tip swing length, averaged over all legs, at various walking speeds.
-	} \label{fig:fig_3}
+	} \label{fig:fig_2}
 \end{figure}
 
 % 肌肉驱动的人类跑步模拟：https://simtk.org/projects/runningsim/
@@ -571,7 +592,7 @@ For further details, see Methods and Extended Data Fig.~\ref{fig:extended_fig_3}
 		\textbf{(i)} % 模型和真实人 在稳定（小身体加速度）和非稳定（大身体加速度）时 脚(Stroke, Deviation, Rootation)的对比
 		Leg angles during steady (small body acceleration) and unsteady (large body acceleration) leg beats for model and real humans in the test set. 
 		Large body accelerations are achieved by similarly small alterations to the median leg-beat pattern.
-	} \label{fig:fig_2}
+	} \label{fig:fig_3}
 \end{figure}
 
 
@@ -624,7 +645,34 @@ We found that two components-viscous drag and Kutta lift-dominated force generat
 % fig5: 跑步的层次控制
 \subsection{Hierarchical vision-guided walking}
 
+% 高层木偶世界模型
+We now consider training a high-level puppeteering world model via online interaction in downstream task.
+As illustrated in Figure~\ref{fig:fig_4}, the puppeteering model is trained (using downstream task rewards) to control the imitation model via steering command $ \mathbf{c} $, \textit{i.e.}, we redefine commands to now be the action space of the puppeteering agent.
+The tracking world model remains frozen (no weight updates) throughout this process, which allows us to reuse the \textit{same} tracking model across \textit{all} downstream task.
+Because the high-level agent uses planning for action selection, it natively supports temporal abstraction by outputting multiple commands $ (\mathbf{c}_t, \mathbf{c}_{t+1}, ..., \mathbf{c}_{t+H}) $ for the low-level agent to execute; 
+% 控制的力度 k
+we treat the number of low-level steps per high-level step as a hyperparameter $ k $ that allows us to trade strong motion prior (large $ k $) for control granularity (small $ k $).
+The high-level policy outputs commands at a fixed frequency regardless of whether the previous command was achieved.
 
+
+% 3.3 带结束条件的规划
+We consider episodic MDPs with termination conditions.
+In the context of humanoid control, a common such termination condition is non-foot contact with the floor.
+Use of termination conditions requires special care in the context of world model learning and planning, as both components are used to simulate (latent) multi-step rollouts.
+We extend the world model of TD\_MPC2 with a termination prediction head $ D $, which predicts the probability of termination at each time step.
+This termination head is trained end-to-end together with all other components of the world model using
+\begin{equation}\label{eq:trained_termination}
+	\mathcal{L}_\text{Puppeteer}(\theta)
+		\doteq
+		\mathcal{L}_\text{TD-MPC2} (\theta) + 
+		\alpha \text{CE} (\hat{\delta}, \delta)
+\end{equation}
+%
+where $ \hat{\delta}, \delta $ are predicted and ground-truth termination signals, respectively, CE is the (binary) cross-entropy loss, and $ \alpha $ is a constant coefficient balancing the losses.
+We additionally truncate TD-targets at terminal states during training.
+It is similarly necessary to truncate model rollouts and value estimates during planing (at test-time).
+However, we only have access to predicted termination signals at test-time, which can be noisy and consequently lead to high-variance value estimates for latent rollouts.
+To mitigate this, we maintain a cumulative weighting (discount) of termination probabilities when rolling out the model (capped at 0), such that only a \textit{soft} truncation is applied.
 
 
 
@@ -863,6 +911,9 @@ Extended Data Figure~\ref{fig:extended_fig_2} shows the distributions of the inv
 The median errors per leg are generally small, below 1\% of the fly body length, and there is no significant difference between the rest position and grooming position fits. 
 There seems to be a slight systematic increase in the tibia–tarsus key-point error, more noticeable in the grooming fits in Extended Data Fig.~\ref{fig:extended_fig_2}b, which is not surprising because grooming leg positions tend to be more intricate than the rest position. 
 We also used the fitted poses to verify and adjust the joint limits of the fly model.
+
+
+\subsection{Hierarchical World}
 
 
 \subsection{Distributed RL}
