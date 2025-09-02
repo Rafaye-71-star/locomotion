@@ -913,7 +913,100 @@ There seems to be a slight systematic increase in the tibia–tarsus key-point e
 We also used the fitted poses to verify and adjust the joint limits of the fly model.
 
 
-\subsection{Hierarchical World}
+\subsection{Hierarchical World Model Implementation}
+
+\textbf{MoCap dataset}. 
+We use the "small" offline dataset provided by MoCapAct which is available at \href{https://microsoft.github.io/MoCapAct}{https://microsoft.github.io/MoCapAct}.
+This dataset contains 20 noisy expert rollouts from each of 836 expert policies trained to track individual MoCap clips, totalling (suboptimal) 16,720 trajectories.
+Trajectories are variable length and are labelled with the CoMiC tracking reward which we use throughout this work.
+We solely use this dataset during (pre)training of the low-level tracking agent;
+the high-level puppeteering agent is trained independently of the tracking agent using only online interaction data and task rewards.
+
+
+\textbf{Puppeteer}.
+We base our implementation off of TD-MPC2 and use default design choices and hyperparameters whenever possible.
+We experimented with alternative hyperparameters but did not observe any benefit in doing so.
+All hyperparameters are listed in Table 5.
+Our approach introduces only two new hyperparameters compared to prior work:
+loss coefficient for termination prediction
+(
+because our task suite has termination conditions; 
+we add this to the TD-MPC2 baseline as well
+),
+and the number of low-level steps to take per high-level step (temporal abstraction).
+
+
+\textbf{TD-MPC2}. 
+We use the official implementation available at \href{https://github.com/nicklashansen/tdmpc2}{https://github.com/nicklashansen/tdmpc2}, but modify the implementation to support multi-modal obaservations and termination conditions as discussed in Section 3.
+We empirically observe that TD-MPC2 degenerates to highly unrealistic hehavior without a contact-based termination condition.
+
+
+\textbf{SAC}. 
+We benchmark against the implementation from \href{https://github.com/denisyarats/pytorch_sac}{https://github.com/denisyarats/pytorch\_sac} due to its strong performance on lower-dimensional DMControl task as well as its popularity among the cummunity.
+We modify the implementation to support early termination.
+We experiment with a variety of design choices and hyperparameters as we find vanilla SAC to suffer from numerical instabilities on our task suite (presumably due to high-dimensional observation and action space), but are unable to achieve non-trivial performance.
+The ablation in Figure 8 (hierarchical planning) strongly suggests that planning is a key driver of performance in Puppeteer and TD-MPC2, while SAC is a model-free method incapable of planning.
+Design choices and hyperparameters that we experimented with are as follows:
+
+
+\textbf{DreamerV3}. 
+We use the official implementation available at \href{https://github.com/danijar/dreamerv3}{https://github.com/danijar/dreamerv3}, and use the default hyperparameters recommended for proprioceptive DMControl task.
+A key selling point of DreamerV3 is its robustness to hyperparameters across tasks (relative to SAC), but we find that DreamerV3 does not achieve any non-trivial performance on our task suite.
+While DreamerV3 is a model-based algorithm, it does not use planning, which the ablation in Figure 8 (hierarchical planning) finds to be a key driver of performance in Puppeteer and TD-MPC2.
+
+
+\subsection{Task Suite}
+We propose a benchmark for visual whole-body humanoid control based on the "CMU Humanoid" model from DMControl.
+Our simulated humanoid has 56 fully controllable joints ($ \mathcal{A} \in \mathbb{R}^{56} $),
+and includes both head, hands, and feet.
+Actions are normalized to be in [-1, 1].
+Our task suite consists of 5 vision-conditioned whole-body locomotion tasks (corridor, hurdles, walls, gaps, stairs), as well as 3 tasks that use proprioceptive information only (stand, walk, run).
+All 8 tasks are illustrated in Figure 4.
+
+
+Observations always include proprioceptive information, as well as either visual inputs (high-level agent) or a command (low-level agent).
+The proprioceptive state vector is 212-dimensional and consists of relative joint positions and velocities, body velocimeter and accelerometer, gyro, joint torques, binary touch (contact) sensors, and orientation relative to world $ z $-axis.
+Visual inputs are raw $ 64 \times 64 $ RGB images captured by a third-person camera (as seen in Figure 4) without any preprocessing steps,
+and tracking commands are 15-dimensional vectors (corresponding to 5 points in 3D space) with values in [-1, 1].
+
+
+Downstream task reward functions are based on the humanoid reward functions in DMControl with minimal modification to fit our higher DoF embodiment.
+All 5 visual tasks use the same reward function, which is proportional to forward velocity of the humanoid and is bounded to always be non-negative:
+\begin{equation}\label{eq:visual_reward}
+	R(\mathbf{s}) \doteq 
+		\text{clip} ( \text{linvel}_x, [0, v_\text{target}] )
+\end{equation}
+% 
+where linvel$ _x $ is linear velocity along the $ x $-axis, 
+and the clip opeerator bounds the reward value to always be non-negative 
+and at most of a target velocity $ v_\text{target} $ which we set to 6 in all tasks.
+% XY方向上有速度，说明不是Z方向（倒了），应该给奖励
+The 3 proprioceptive tasks use a similar reward function, except that the agent is rewarded for velocity in any $ XY $-direction,
+and has an additional term that encourages an upright pose:
+% headpos_z 越大越好
+\begin{equation}\label{eq:proprioceptive_reward}
+	R(\mathbf{s}) \doteq
+		\min ( | \text{linvel}_{xy} |, v_\text{target} )
+		+ \alpha \cdot \text{headpos}_z
+\end{equation}
+%
+where $ \alpha $ is a constant coefficient balancing the two reward terms, and headops$ _z $ is the height of the humanoid head in the world frame.
+% \mathcal calligraphic 书法字体
+% \mathbb blackboard-bold 将字母转成黑板粗体（集合或向量）双线体
+The additional height reward term is adopted from the \textit{stand}, \textit{walk}, and \textit{run} tasks that DMControl implement with a simplified humanoid model ($ \mathcal{A} \in \mathbb{R}^{24} $).
+We find that the TD-MPC2 baseline produces very unrealistic behaviors without the additional reward term, so we choose to keep the term to make comparison more fair.
+
+
+\subsection{User Study}
+
+% 哪个看起来更像真人
+To compare the "naturalness" of policies learned by our method vs. TD-MPC2, 
+we design a user study in which humans are asked to watch short (~10s) pairs of clips of simulated humanoid motions generated for each of our 5 visual whole-body humanoid control tasks.
+Each user is presented with 2 such pairs per task, totalling 10 pair per user.
+Sample clips used in the user study are available at \href{https://www.nicklashansen.com/rlpuppeteer}{https://www.nicklashansen.com/rlpuppeteer}, as well as in Appendix A.
+Pairs are generated by converged Puppeteer and TD-MPC2 agents.
+%We generate 5 rollouts per task for each of two separately trained
+
 
 
 \subsection{Distributed RL}
