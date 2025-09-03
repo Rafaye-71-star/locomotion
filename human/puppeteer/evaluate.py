@@ -78,12 +78,13 @@ def evaluate(cfg: dict):
 		os.makedirs(video_dir, exist_ok=True)
 	ep_rewards, ep_successes = [], []
 	for i in tqdm(range(cfg.eval_episodes), desc=f'{cfg.task}'):
+		# 每个轮次开始时重置环境
 		obs, done, ep_reward, t = env.reset(), False, 0, 0
 		if cfg.save_video:
 			frames = [env.render()]
 		while not done:
-			action = agent.act(obs, t0=t==0)
-			obs, reward, done, info = env.step(action)
+			action = agent.act(obs, t0=t==0)  # 计算动作
+			obs, reward, done, info = env.step(action)  # 与环境交互
 			ep_reward += reward
 			t += 1
 			if cfg.save_video:

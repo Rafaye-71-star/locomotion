@@ -1,48 +1,48 @@
 defaults:
     - override hydra/launcher: submitit_local
 
-# environment
-task: tracking              # task name, 'tracking' for low-level policy, and otherwise task name
+# 环境
+task: tracking              # 任务名, 'tracking' 表示低层策略，否则为任务名
 num_clips: all              # number of training clips to use, or 'all' for all 836 clips
 clip_ids: ???               # list of clip ids to use; is set automatically based on num_clips
 obs: ???                    # observation type, one of ('state', 'rgb'); is set automatically based on task
 
-# evaluation
-checkpoint: ???             # path to model checkpoint (str)
-eval_episodes: 20           # number of evaluation episodes (int)
+# 评估
+checkpoint: ???             # 模型检查点的路径 (str)
+eval_episodes: 20           # 评估的轮次数 (int)
 eval_freq: 50000            # evaluation frequency during training (int)
 
-# hierarchy
-low_level_fp: /path/to/ckpt # path to low-level tracking checkpoint (str)
+# 层次
+low_level_fp: /path/to/ckpt # 低层次跟踪检查点的路径 (str)
 action_scale: 0.3           # scale of high-level actions (float)
 
-# training
-steps: 10_000_000           # number of training steps (int)
-batch_size: 256             # batch size (int)
+# 训练
+steps: 10_000_000           # 训练的步数 (int)
+batch_size: 256             # 批次大小 (int)
 reward_coef: 0.1            # reward loss coefficient (float)
 value_coef: 0.1             # value loss coefficient (float)
 terminated_coef: 0.1        # termination loss coefficient (float)
 consistency_coef: 20        # consistency loss coefficient (float)
 rho: 0.5                    # temporal weight for tdmpc2 loss (float)
-lr: 3e-4                    # learning rate (float)
+lr: 3e-4                    # 学习率 (float)
 enc_lr_scale: 0.3           # encoder learning rate scale (float)
 grad_clip_norm: 20          # gradient clipping norm (float)
 tau: 0.01                   # target network ema coefficient (float)
-discount: 0.97              # discount factor (float)
+discount: 0.97              # 折扣因子 (float)
 buffer_size: 1_000_000      # replay buffer size (int)
 exp_name: default           # experiment identifier/name (str)
 data_dir: /path/to/data     # path to mocapact dataset (str)
 
-# planning
-mpc: true                   # whether to use mpc or policy prior (bool)
-iterations: 6               # number of mpc iterations (int)
-num_samples: 512            # number of samples per iteration (int)
-num_elites: 64              # number of elite samples (int)
+# 规划
+mpc: true                   # 是否使用 模型预测控制(model, predictive control, mpc) 或 policy prior (bool)
+iterations: 6               # 模型预测控制迭代的次数 (int)
+num_samples: 512            # 每次迭代的样本数 (int)
+num_elites: 64              # 精英(elites)样本的数目 (int)
 num_pi_trajs: 24            # number of policy prior trajectories (int)
-horizon: 3                  # mpc planning horizon (int)
-min_std: 0.05               # minimum std for mpc sampling (float)
-max_std: 2                  # maximum std for mpc sampling (float)
-temperature: 0.5            # temperature for mpc sampling (float)
+horizon: 3                  # 模型预测控制的 规划 步数 (int)
+min_std: 0.05               # 模型预测控制采样的最小标准差 (float)
+max_std: 2                  # 模型预测控制采样的最大标准差 (float)
+temperature: 0.5            # 模型预测控制采样的温度 (float)。温度系数temperature对应的是模型输出的多样性
 
 # policy prior
 log_std_min: -10            # minimum log std for policy prior (float)
@@ -54,28 +54,28 @@ num_bins: 101               # number of bins for discrete regression (int)
 vmin: -10                   # minimum log value for critic (float)
 vmax: +10                   # maximum log value for critic (float)
 
-# architecture
-num_enc_layers: 2           # number of encoder layers (int)
-enc_dim: 256                # encoder hidden dimension (int)
-num_channels: 32            # number of channels for conv encoder (int)
-mlp_dim: 512                # mlp hidden dimension (int)
-latent_dim: 512             # latent state dimension (int)
-num_q: 5                    # number of ensemble Q-functions (int)
-dropout: 0.01               # dropout Q-function rate (float)
+# 架构
+num_enc_layers: 2           # 编码器(encoder)层的数目 (int)
+enc_dim: 256                # 编码器 隐藏层 维度 (int)
+num_channels: 32            # 卷积编码器的通道数 (int)
+mlp_dim: 512                # 多层感知机（multilayer perceptron, mlp）隐藏层维度 (int)
+latent_dim: 512             # 隐藏状态的维度 (int)
+num_q: 5                    # 总体(ensemble) Q 函数的数目 (int)
+dropout: 0.01               # 丢弃 Q函数的比率 (float)
 simnorm_dim: 8              # simnorm group dimension (int)
 
-# logging
+# 日志
 wandb_project: locomotion          # wandb project name (str)
 wandb_entity: openhutb           # wandb entity name (str)
 wandb_silent: false         # whether to silence wandb prints (bool)
 use_wandb: true             # whether to use wandb (bool)
 save_csv: false             # whether to save csv logs (bool)
 
-# misc
-save_video: true            # whether to save evaluation videos (bool)
-save_agent: true            # whether to save agent checkpoints (bool)
-save_freq: 500_000          # agent checkpoint save frequency (int)
-seed: 1                     # random seed (int)
+# 杂项
+save_video: true            # 是否保存评估视频 (bool)
+save_agent: true            # 是否保存代理的检查点 (bool)
+save_freq: 500_000          # 代理检查点的保存频率 (int)
+seed: 1                     # 随机种子 (int)
 
 # convenience
 work_dir: ???

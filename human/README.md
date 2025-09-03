@@ -11,7 +11,7 @@
 
 ## 概述
 
-我们提出了木偶（Puppeteer），这是一种通过视觉观察的全身人类人体控制的分层世界模型。我们的方法会产生自然和类似人类的动作，而无需任何奖励设计或技能基元，并穿越了具有挑战性的地形。
+我们提出了木偶（Puppeteer，基于TD-MPC2:Temporal Difference Learning for Model Predictive Control），这是一种通过视觉观察的全身人类人体控制的分层世界模型。我们的方法会产生自然和类似人类的动作，而无需任何奖励设计或技能基元，并穿越了具有挑战性的地形。
 
 <img src="assets/1.png" width="100%" style="max-width: 640px"><br/>
 
@@ -50,8 +50,8 @@ cd docker && docker build . -t <user>/puppeteer:1.0.0
 | 跑步 run                | N
 | 过道 corridor           | Y
 | 跨栏过道 hurdles-corridor | Y
-| gaps-corridor         | Y
-| walls-corridor        | Y
+| 绕墙过道 walls-corridor        | Y
+| 沟渠过道 gaps-corridor         | Y
 | 楼梯过道 stairs-corridor  | Y
 
 可以通过指定`train.py` and`evaluation.py`的`task`参数来运行。
@@ -62,7 +62,7 @@ cd docker && docker build . -t <user>/puppeteer:1.0.0
 
 ### 评估
 
-请参阅下面有关如何评估下载的低级和高级检查点的示例。
+请参阅下面有关如何评估下载的低层和高层检查点的示例。
 
 ```shell
 python evaluate.py task=corridor low_level_fp=/path/to/tracking.pt checkpoint=/path/to/corridor-1.pt

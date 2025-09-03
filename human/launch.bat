@@ -1,16 +1,31 @@
 
-conda activate locomotion
+:: conda activate locomotion
+
+:: 模型路径：D:/work/workspace/locomotion/human/
+set MODEL_PATH=D:/work/workspace/locomotion/human/
 
 :: 站立
 
 
-:: 过道 corridor
-python puppeteer/evaluate.py task=corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/corridor-1.pt save_video=true
+:: 5 个视觉任务
+
+:: 过道 corridor（正常：corridor-10.mp4）
+python puppeteer/evaluate.py task=corridor low_level_fp=%MODEL_PATH%model/tracking.pt checkpoint=%MODEL_PATH%model/corridor-3.pt save_video=true
 
 
-python evaluate.py task=gaps-corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/gaps-1.pt save_video=true
+:: 跨栏过道（正常：hurdles-corridor-10.mp4）
+:: 视频保存在：locomotion\human\logs\hurdles-corridor\1\default\videos\
+python puppeteer/evaluate.py task=hurdles-corridor low_level_fp=%MODEL_PATH%model/tracking.pt checkpoint=%MODEL_PATH%model/hurdles-3.pt save_video=true
 
 
-:: 楼梯过道 stairs-3.pt
-python puppeteer/evaluate.py task=stairs-corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/stairs-3.pt save_video=true
+:: 绕墙过道（正常：walls-corridor-9.mp4）
+python puppeteer/evaluate.py task=walls-corridor low_level_fp=%MODEL_PATH%model/tracking.pt checkpoint=%MODEL_PATH%model/walls-3.pt save_video=true
+
+
+:: 沟渠过道（正常：gaps-corridor-19.mp4）
+python puppeteer/evaluate.py task=gaps-corridor low_level_fp=%MODEL_PATH%model/tracking.pt checkpoint=%MODEL_PATH%model/gaps-3.pt save_video=true
+
+
+:: 楼梯过道 stairs-3.pt（后面摔跤：stairs-corridor-18.mp4）
+python puppeteer/evaluate.py task=stairs-corridor low_level_fp=%MODEL_PATH%model/tracking.pt checkpoint=%MODEL_PATH%model/stairs-3.pt save_video=true
 

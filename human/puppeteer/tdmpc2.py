@@ -63,14 +63,14 @@ class TDMPC2:
 	@torch.no_grad()
 	def act(self, obs, t0=False, eval_mode=False):
 		"""
-		Select an action by planning in the latent space of the world model.
+		在世界模型的隐空间中通过规划选择一个动作
 		
-		Args:
-			obs (torch.Tensor): Observation from the environment.
-			t0 (bool): Whether this is the first observation in the episode.
-			eval_mode (bool): Whether to use the mean of the action distribution.
+		参数:
+			obs (torch.Tensor): 环境中的观测值
+			t0 (bool): 这是否是轮次中的第一个观测值
+			eval_mode (bool): 是否使用动作分布的平均
 		
-		Returns:
+		返回:
 			torch.Tensor: Action to take in the environment.
 		"""
 		if self.cfg.obs == 'rgb':
@@ -78,11 +78,11 @@ class TDMPC2:
 			obs['state'] = obs['state'].to(self.device, non_blocking=True).unsqueeze(0)
 		else:
 			obs = obs.to(self.device, non_blocking=True).unsqueeze(0)
-		z = self.model.encode(obs)
+		z = self.model.encode(obs)  # 编码观测值到隐空间（感知）
 		if self.cfg.mpc:
 			action = self.plan(z, t0=t0, eval_mode=eval_mode)
 		else:
-			action = self.model.pi(z)[int(not eval_mode)][0]
+			action = self.model.pi(z)[int(not eval_mode)][0]  # 规划动作
 		return action.cpu()
 
 	@torch.no_grad()
