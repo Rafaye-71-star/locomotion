@@ -997,6 +997,142 @@ The additional height reward term is adopted from the \textit{stand}, \textit{wa
 We find that the TD-MPC2 baseline produces very unrealistic behaviors without the additional reward term, so we choose to keep the term to make comparison more fair.
 
 
+% 实验部分
+\subsection{Hierarchical World Model Experiments}
+
+Our proposed methods holds the promise of strong downstream task performance while still synthesizing natural and human-like motions.
+To evaluate the efficacy of our method, we propose a new task suite for whole-body humanoid control with multi-modal observations (vision and proprioceptive information) base on the "CMU Humanoid" model from DMControl.
+Our simulated humanoid has 56 fully controllable joints ($ \mathcal{A} \in \mathbb{R}^{56} $), and includes both head, hands, and feet.
+We aim to learn highly performant policies in a data-driven manner without the need for embodiment- or task-specific engineering (\textit{e.g.}, reward design, constraints, or auxilary objectives), while synthesizing natural and human-like motions.
+Code for method and environments is available at \href{https://github.com/OpenHUTB/locomotion}{https://github.com/OpenHUTB/locomotion}.
+
+
+\subsubsection{Experimental Details}
+
+\textbf{Tasks}.
+Our proposed task suite consists of 5 vision-conditioned whole-body locomotion tasks,
+and an additional 3 tasks without visual input.
+We provide an overview of tasks in Figure 4;
+they are designed with a high degree of randomization and include running along a corridor, jumping over hurdles and gaps, walking up the stairs, and circumnavigating obstacles (walls).
+All 5 visual control tasks use a reward function that is proportional to the linear forward velocity, while non-visual tasks reward displacement in any direction.
+Episodes are terminated at timeout (500 steps) or when a non-foot joint makes contact with the floor. 
+% 没有 基于接触的结束条件（加上了脚没接触地就结束）
+We empirically observe that the TD-MPC2 baseline degegerates to highly unrealistic behavior without a contact-based termination condition, 
+and thus modify TD-MPC2 to support termination as described in Section 3.3.
+See Appendix E for details.
+
+
+\subsubsection{Implementation}
+
+We pretrain a single 5M parameter TD-MPC2 world model to track all 836 CMU MoCap reference motion retargeted to the CMU Humanoid model.
+This in contrast to, \textit{e.g.}, MoCapAct that trains ~2600 individual tracking policies.
+Our tracking agent is trained for 10M steps using both offline data (noisy rollouts) from MoCapAct and online interaction with a new reference motion sampled in each episode.
+We sample 50\% of each batch from the offline dataset, and 50\% from the online replay buffer for each gradient update;
+we did not experiment with other ratios.
+The puppeteering agent is similarly implemented as a 5M parameter TD-MPC2 world model, which we train from scratch via online interaction on each downstream task.
+Observations include a 212-d proprioceptive state vector and $ 64 \times 64 $ RGB images from a third-person camera.
+Both agents act at the same frequency, \textit{i.e.}, we set $ k=1 $.
+Training the tracking world model takes approximately 12 days, 
+and training the pupeteering world model takes approximately 4 days,
+both on a single NVIDIA GeForce RTX 3090 GPU.
+CPU and RAM usage is negligible.
+System requirements are detailed in Appendix C.
+
+
+% 基于模型：已经环境模型（即状态转移函数P和奖励函数r）
+\textbf{Baselines}.
+We benchmark our method against state-of-the-art RL algorithms for continuous control, including
+(1) widely used model-free RL method \textbf{Soft Actor-Critic} (SAC) which learns a stochastic policy and value function using a maximum entropy RL objective,
+(2) model-based RL method \textbf{DreamerV3} which simultaneously learns a world model using a generative objective, and model-free policy in the latent space of the learned world model,
+% 无解压码
+(3) model-based RL method \textbf{TD-MPC2} which learns a self-predictive (decoder-free) world model and selects actions by planning with the learned world model,
+(4) a hierarchical baseline that uses the same low-level TD-MPC2 agent as our method but trains a SAC policy as the high-level agent,
+and (5) the same hierarchical baseline but with DreamerV3 as the high-level agent (and TD-MPC2 at the low level).
+We refrain from making a direct comparison to MoCapAct and DeepMimic as they do not support visual observations and require several orders of magnitude more environment interactions to learn downstream task.
+Both our method and baselines use the \textbf{same} hyperparameters across all tasks,
+as TD-MPC2 and DreamerV3 have been shown to be robust to hyperparameters across task suits.
+For a fair comparison, we experiment with vairous design choices and hyperparameter configurations for SAC and report the best results that we obtained.
+We provide further implementation details in Appendix D.
+
+
+\subsubsection{Main Result}
+
+We frist present our main benchmark results, 
+and then analyze and ablate each design choice.
+
+
+\textbf{Benchmark results.}
+
+We evaluate our method, \textit{Puppeteer}, and baselines on all 8 whole-body humanoid control tasks.
+Episode return as a function of environment step is shown in Figure 5.
+We observe that the performance of our method is comparable to that of TD-MPC2 across all tasks (except \textit{stairs}), 
+whereas SAC and DreamerV3 does not achieve any meaningful performance within our computational budget of 3M environment step;
+hierarchical DreamerV3 achieves non-trivial yet still poor performance with TD-MPC2 as the low-level agent.
+As we will soon reveal, TD-MPC2 produces better policies in terms of episode return on the \textit{stairs} task,
+but far less natural behavior (walking vs. rolling up stairs).
+We conjecture that this is a symptom of \textit{reward hacking}.
+Sample videos are available at \href{https://github.com/OpenHUTB/locomotion}{https://github.com/OpenHUTB/locomotion}.
+
+
+\textbf{"Naturalness" os humanoid controllers}.
+We conduct a user study ($ n = 51 $) in which humans are shown pairs of short (~10 s) clips of rollouts from TD-MPC2 and our method, 
+and are asked to provide their preference.
+Participants are undergraduate and graduate students across multiple universities and disciplines.
+Results from this study are shown in Figure 6, and Figure 7 showns two sample clips from the study.
+While both methods perform comparably in terms of downstream task reward, a supermajority of participants rate rollouts from our method as more natural than that of TD-MPC2, with only 4\% of responses rating them as "equally natural" and 0\% rating TD-MPC2 as more natural.
+% 不是滚上楼梯
+This preference is especially pronounced in the \textit{stair} task, where TD-MPC2 achieves a higher asymptotic return (higher forward velocity) but learns to "roll" up stairs as opposed to our method that walk.
+We also report several quantitative measures of naturalness in Table 1, which strongly support our user study results.
+These findings underline the importance of a more holistic evaluation of RL policies as opposed to solely relying on rewards.
+See Appendix A for more results.
+
+
+\subsubsection{Ablations \& Analysis}
+
+We ablate each design choice of our method, including both the pretraining (tracking) and downstream task learning stages.
+Our experimental results are summarized in Figure 8.
+
+\textbf{Pretraining (tracking)}.
+Our method leverages both offline and online data during pretraining of the tracking world model.
+We ablate this training mixture in two distinct ways:
+\textit{(i)} using only offline or online data,
+and \textit{(ii)} reducing the number of unique MoCap clips seen during training.
+Interestingly, we find that leveraging both data sources leads to better tracking policies overall.
+% 离线数据 学习 困难的运动
+% 在线数据 提高 状态-动作 覆盖，得到一个更加鲁棒的世界模型
+We hypothesize that this is because offline data may help in learning to track especially difficult motions such as jumping and balancing on one leg,
+while online data improves state-action coverage and thus leads to a more robust world model overall.
+Similarly, training on more diverse MoCap clips also leads to better tracking performance.
+Training on all 836 MoCap clips results in the best tracking world model,
+and we expect tracking to further improve with availability of more MoCap data.
+See Appendix B for more results.
+
+
+\textbf{Downsteam tasks}.
+We conduct three ablations that help us better understand the impact of a hierarchical approach to downstream tasks;
+% 无模型策略 替换 两层中的任意一个
+\textit{(i)} using a learned model-free policy in lieu of planning in either level of the hierarchy,
+% 对 高层代理 和 低层代理 都进行预训练
+\textit{(ii)} pretraining of the \textit{high-level} agent in addition to the low-level agent, 
+% 在没有见过的环境变体中 评估 零样本泛化
+and \textit{(iii)} evaluting zero-shot generalization to unseen environment variations (gap lenght in the \textit{gap} task).
+The first two ablations are shown in Figure 8, 
+and the latter is shown in Figure 9.
+% 两层的规划对 全身人形控制都很重要
+We find that planing at both levels is critical to effective whole-body humanoid control,
+which we conjecture is due to the high dimensionality of the problem;
+this is supported by concurrent studies on high-dimensional continuous control with TD-MPC2.
+Next, we pretrain agents on the \textit{corridor} task and independently finetune on each visual control task.
+While the specific environments and motions differ between tasks, we find that our method benefits substantially from finetuning.
+We conjecture that this is because the need to control a low-level tracking agent is shared between all high-level agents, irrespective of the downstream task.
+This is in contrast to contemporary work on pretraining that often pretrains on large-scale out-of-domain data.
+Finally, we explore the zero-shot generalization ability of our method to harder, unseen variations of the \textit{gap} task.
+Interestingly, we observe that our method generalizes to gap lengths up to $ 3 \times $ the training data without additional training.
+In light of these results, we believe that further investigation of the generalization ability of hierarchical world models will be a promising direction for furture research.
+
+
+
+
 \subsection{User Study}
 
 % 哪个看起来更像真人
