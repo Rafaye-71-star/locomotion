@@ -2,10 +2,10 @@ defaults:
     - override hydra/launcher: submitit_local
 
 # 环境
-task: tracking              # 任务名, 'tracking' 表示低层策略，否则为任务名
-num_clips: all              # number of training clips to use, or 'all' for all 836 clips
-clip_ids: ???               # list of clip ids to use; is set automatically based on num_clips
-obs: ???                    # observation type, one of ('state', 'rgb'); is set automatically based on task
+task: tracking              # 任务名, 'tracking' 表示低层策略（为高层任务所共用），否则为任务名
+num_clips: all              # 所使用的训练片段数，或者是 'all' 表示使用所有 836 个片段
+clip_ids: ???               # 所使用的片段 id 列表，基于 num_clips 自动设置
+obs: ???                    # 观测值类型 基于任务自动设置，为 ('state', 'rgb') 中的一种
 
 # 评估
 checkpoint: ???             # 模型检查点的路径 (str)
@@ -31,7 +31,7 @@ tau: 0.01                   # target network ema coefficient (float)
 discount: 0.97              # 折扣因子 (float)
 buffer_size: 1_000_000      # replay buffer size (int)
 exp_name: default           # experiment identifier/name (str)
-data_dir: /path/to/data     # path to mocapact dataset (str)
+data_dir: /path/to/data     # 指向 mocapact 数据集的路径 (str)
 
 # 规划
 mpc: true                   # 是否使用 模型预测控制(model, predictive control, mpc) 或 policy prior (bool)
@@ -49,10 +49,10 @@ log_std_min: -10            # minimum log std for policy prior (float)
 log_std_max: 2              # maximum log std for policy prior (float)
 entropy_coef: 1e-4          # entropy loss coefficient for policy prior (float)
 
-# critic
-num_bins: 101               # number of bins for discrete regression (int)
-vmin: -10                   # minimum log value for critic (float)
-vmax: +10                   # maximum log value for critic (float)
+# critic (Soft Actor-Critic(SAC) ? )
+num_bins: 101               # 离散回归的桶数 (int)
+vmin: -10                   # 评论家的最小 log 值 (float)
+vmax: +10                   # 评论家最大 log 值 (float)
 
 # 架构
 num_enc_layers: 2           # 编码器(encoder)层的数目 (int)
@@ -77,7 +77,7 @@ save_agent: true            # 是否保存代理的检查点 (bool)
 save_freq: 500_000          # 代理检查点的保存频率 (int)
 seed: 1                     # 随机种子 (int)
 
-# convenience
+# 为了方便
 work_dir: ???
 task_title: ???
 obs_shape: ???

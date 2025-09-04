@@ -26,10 +26,10 @@ def train(cfg: dict):
 
 	最相关的参数：
 		`task`: 任务名称（默认：tracking）
-		`steps`: number of training/environment steps (default: 10M)
-		`seed`: random seed (default: 1)
+		`steps`: 训练/环境 步数 (默认: 10M)
+		`seed`: 随机种子 (默认: 1)
 
-	See config.yaml for a full list of args.
+	完整的参数列表请查看 config.yaml
 
 	示例用法：
 	```
@@ -42,6 +42,7 @@ def train(cfg: dict):
 	set_seed(cfg.seed)
 	print(colored('Work dir:', 'yellow', attrs=['bold']), cfg.work_dir)
 
+	# 如果是底层的 tracking 任务，则使用集成缓冲区，否则使用普通缓冲区
 	buffer_cls = EnsembleBuffer if cfg.task == 'tracking' else Buffer
 	trainer = Trainer(
 		cfg=cfg,

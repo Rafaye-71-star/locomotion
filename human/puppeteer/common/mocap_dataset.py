@@ -398,7 +398,7 @@ class ExpertDataset(Dataset):
 
 class MocapDataset(ExpertDataset):
 	"""
-	Class for datasets respecting the D4RL interface.
+	关于 D4RL 接口数据集的类
 	For reference, please check: https://github.com/Farama-Foundation/D4RL
 	"""
 
@@ -550,7 +550,7 @@ class MocapDataset(ExpertDataset):
 
 class MocapBuffer():
 	"""
-	Minimal TD-MPC2-compatible wrapper for the MoCapAct dataset.
+	MoCapAct 数据集 的和 TD-MPC2 兼容的最小封装器
 	"""
 	def __init__(self, cfg):
 		self.cfg = cfg
@@ -585,7 +585,7 @@ class MocapBuffer():
 		return (arg.to(device, non_blocking=True) for arg in args)
 
 	def sample(self):
-		"""Sample a batch of subsequences from the mocap dataset."""
+		"""从 mocap 数据集中采样一个序列批次"""
 		try:
 			obs, action, reward, terminated = next(self._iter)
 		except StopIteration:

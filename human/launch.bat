@@ -4,10 +4,14 @@
 :: 模型路径：D:/work/workspace/locomotion/human/
 set MODEL_PATH=D:/work/workspace/locomotion/human/
 
-:: 站立
+:: 走路
+python puppeteer/train.py task=walk low_level_fp=%MODEL_PATH%model/tracking.pt
+
+exit 0
 
 
-:: 5 个视觉任务
+
+:: 验证 5 个视觉任务
 
 :: 过道 corridor（正常：corridor-10.mp4）
 python puppeteer/evaluate.py task=corridor low_level_fp=%MODEL_PATH%model/tracking.pt checkpoint=%MODEL_PATH%model/corridor-3.pt save_video=true

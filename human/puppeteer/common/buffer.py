@@ -102,7 +102,7 @@ class Buffer():
 
 class EnsembleBuffer(Buffer):
 	"""
-	Ensemble of an offline dataloader and an online replay buffer.
+	离线数据加载 和 在线重放缓冲 的集成
 	"""
 
 	def __init__(self, cfg):
@@ -112,8 +112,8 @@ class EnsembleBuffer(Buffer):
 		super().__init__(_cfg)
 
 	def sample(self):
-		"""Sample a batch of subsequences from the two buffers."""
-		obs0, action0, reward0, terminated0 = self._offline.sample()
+		"""从两个缓冲中 采样一个序列的批次"""
+		obs0, action0, reward0, terminated0 = self._offline.sample()  # 从 MocapBuffer 离线数据中采样
 		obs1, action1, reward1, terminated1 = super().sample()
 		return torch.cat([obs0, obs1], dim=1), \
 			torch.cat([action0, action1], dim=1), \

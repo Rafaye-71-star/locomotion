@@ -86,9 +86,10 @@ nvidia-smi -l 1
 配置数据集
 
 ```
-$ python train.py task=tracking
-$ python train.py task=walk low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt
-$ python train.py task=corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt
+# 训练跟踪模型
+python train.py task=tracking
+python train.py task=walk low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt
+python train.py task=corridor low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt
 ```
 
 我们推荐所有任务使用默认的超参数。参数的完整链表请查看`config.yaml`。
