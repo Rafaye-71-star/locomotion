@@ -71,7 +71,7 @@ class TDMPC2:
 			eval_mode (bool): 是否使用动作分布的平均
 		
 		返回:
-			torch.Tensor: Action to take in the environment.
+			torch.Tensor: 在环境中采取的动作
 		"""
 		if self.cfg.obs == 'rgb':
 			obs['rgb'] = obs['rgb'].to(self.device, non_blocking=True).unsqueeze(0)
@@ -80,9 +80,9 @@ class TDMPC2:
 			obs = obs.to(self.device, non_blocking=True).unsqueeze(0)
 		z = self.model.encode(obs)  # 编码观测值到隐空间（感知）
 		if self.cfg.mpc:
-			action = self.plan(z, t0=t0, eval_mode=eval_mode)
+			action = self.plan(z, t0=t0, eval_mode=eval_mode)  # 使用 模型预测控制 进行动作规划
 		else:
-			action = self.model.pi(z)[int(not eval_mode)][0]  # 规划动作
+			action = self.model.pi(z)[int(not eval_mode)][0]  # 使用 神经网络模型 进行动作规划
 		return action.cpu()
 
 	@torch.no_grad()
@@ -102,26 +102,27 @@ class TDMPC2:
 	@torch.no_grad()
 	def plan(self, z, t0=False, eval_mode=False):
 		"""
-		Plan a sequence of actions using the learned world model.
+		利用所学的世界模型规划一系列动作。
 		
 		Args:
-			z (torch.Tensor): Latent state from which to plan.
-			t0 (bool): Whether this is the first observation in the episode.
-			eval_mode (bool): Whether to use the mean of the action distribution.
+			z (torch.Tensor): 用于规划的隐状态
+			t0 (bool): 这是否是该轮次中首次出现呢？
+			eval_mode (bool): 是否使用动作分布的平均值
 
-		Returns:
-			torch.Tensor: Action to take in the environment.
+		返回:
+			torch.Tensor: 在环境中采取动作
 		"""
-		# Sample policy trajectories
+		# 采样策略轨迹
 		if self.cfg.num_pi_trajs > 0:
 			pi_actions = torch.empty(self.cfg.horizon, self.cfg.num_pi_trajs, self.cfg.action_dim, device=self.device)
 			_z = z.repeat(self.cfg.num_pi_trajs, 1)
+			# 往前看几步
 			for t in range(self.cfg.horizon-1):
 				pi_actions[t] = self.model.pi(_z)[1]
 				_z = self.model.next(_z, pi_actions[t])
 			pi_actions[-1] = self.model.pi(_z)[1]
 
-		# Initialize state and parameters
+		# 初始化状态和参数
 		z = z.repeat(self.cfg.num_samples, 1)
 		mean = torch.zeros(self.cfg.horizon, self.cfg.action_dim, device=self.device)
 		std = self.cfg.max_std*torch.ones(self.cfg.horizon, self.cfg.action_dim, device=self.device)
@@ -131,19 +132,22 @@ class TDMPC2:
 		if self.cfg.num_pi_trajs > 0:
 			actions[:, :self.cfg.num_pi_trajs] = pi_actions
 	
-		# Iterate MPPI
+		# 迭代 MPPI
+		# MPPI算法是一种MPC变体，它使用迭代方法为机器人找到控制速度。
+		# 1. 使用前一个时间步长的最佳控制解和机器人的当前状态，应用一组来自高斯分布的随机采样扰动。这些带噪声的控制被正向模拟，以在机器人的运动模型内生成一组轨迹。
+		# 2. 接下来，使用一组基于插件的critic函数对这些轨迹进行评分，以找到批次中的最佳轨迹。输出分数用于通过软最大函数设置最佳控制。
+		# 3. 然后，此过程重复多次，并返回收敛的解决方案。该解决方案随后被用作下一时间步骤的初始控制的基础。
 		for _ in range(self.cfg.iterations):
-
-			# Sample actions
+			# 采样动作
 			actions[:, self.cfg.num_pi_trajs:] = (mean.unsqueeze(1) + std.unsqueeze(1) * \
 				torch.randn(self.cfg.horizon, self.cfg.num_samples-self.cfg.num_pi_trajs, self.cfg.action_dim, device=std.device)) \
 				.clamp(-1, 1)
-			# Compute elite actions
+			# 计算精英动作
 			value = self._estimate_value(z, actions).nan_to_num_(0)
 			elite_idxs = torch.topk(value.squeeze(1), self.cfg.num_elites, dim=0).indices
 			elite_value, elite_actions = value[elite_idxs], actions[:, elite_idxs]
 
-			# Update parameters
+			# 更新参数
 			max_value = elite_value.max(0)[0]
 			score = torch.exp(self.cfg.temperature*(elite_value - max_value))
 			score /= score.sum(0)
@@ -151,7 +155,7 @@ class TDMPC2:
 			std = torch.sqrt(torch.sum(score.unsqueeze(0) * (elite_actions - mean.unsqueeze(1)) ** 2, dim=1) / (score.sum(0) + 1e-9)) \
 				.clamp_(self.cfg.min_std, self.cfg.max_std)
 
-		# Select action
+		# 选择动作
 		score = score.squeeze(1).cpu().numpy()
 		actions = elite_actions[:, np.random.choice(np.arange(score.shape[0]), p=score)]
 		self._prev_mean = mean

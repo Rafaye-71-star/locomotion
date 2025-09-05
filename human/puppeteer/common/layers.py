@@ -52,8 +52,11 @@ class ShiftAug(nn.Module):
 
 class SimNorm(nn.Module):
 	"""
-	Simplicial normalization.
-	Adapted from https://arxiv.org/abs/2204.00616.
+	单纯形正则化 Simplicial normalization
+	在预训练期间将表征条件化到受限空间，并为组稀疏性赋予归纳偏差。
+	对于下游分类任务，正式证明了单纯形嵌入(SEM)表征比非归一化表征具有更好的泛化性能
+	改编自 https://arxiv.org/abs/2204.00616
+	一个 k 维单纯形是指包含 (k+1)个节点的凸多面体，能够把一个拓扑对象剖分成许多个小的单纯形
 	"""
 	
 	def __init__(self, cfg):
@@ -63,7 +66,7 @@ class SimNorm(nn.Module):
 	def forward(self, x):
 		shp = x.shape
 		x = x.view(*shp[:-1], -1, self.dim)
-		x = F.softmax(x, dim=-1)
+		x = F.softmax(x, dim=-1)  # 使用 softmax 运算将表征投影到V维单纯形中
 		return x.view(*shp)
 		
 	def __repr__(self):
@@ -97,8 +100,8 @@ class NormedLinear(nn.Linear):
 
 def mlp(in_dim, mlp_dims, out_dim, act=None, dropout=0.):
 	"""
-	Basic building block of TD-MPC2.
-	MLP with LayerNorm, Mish activations, and optionally dropout.
+	TD-MPC2 的基本构建模块
+	带 LayerNorm, Mish activations 和可选 dropout 的多层感知机（MLP）
 	"""
 	if isinstance(mlp_dims, int):
 		mlp_dims = [mlp_dims]
@@ -123,10 +126,10 @@ class PixelPreprocess(nn.Module):
 
 def conv(in_shape, num_channels=32, act=None):
 	"""
-	Basic convolutional encoder for TD-MPC2 with raw image observations.
-	4 layers of convolution with ReLU activations, followed by a linear layer.
+	用于具有原始图像观测值的 TD-MPC2 的基本卷积编码器。
+	带 ReLU 激活的 4 层卷积，跟一个线性层
 	"""
-	assert in_shape[-1] == 64 # assumes rgb observations to be 64x64
+	assert in_shape[-1] == 64 # 假设 rgb 的观测的维度是 64x64
 	layers = [
 		ShiftAug(), PixelPreprocess(),
 		nn.Conv2d(in_shape[0], num_channels, 7, stride=2), nn.ReLU(inplace=True),
@@ -140,12 +143,12 @@ def conv(in_shape, num_channels=32, act=None):
 
 def enc(cfg, out={}):
 	"""
-	Returns a dictionary of encoders for each observation in the dict.
+	返回一个包含每个观测值对应的编码器 的字典
 	"""
 	for k in cfg.obs_shape.keys():
-		if k == 'state':
+		if k == 'state':  # 如果是本体感觉，则使用多层感知机提取特征
 			out[k] = mlp(cfg.obs_shape[k][0], max(cfg.num_enc_layers-1, 1)*[cfg.enc_dim], cfg.latent_dim, act=SimNorm(cfg))
-		elif k == 'rgb':
+		elif k == 'rgb':  # 如果是图像，则使用卷积神经网络提取特征
 			out[k] = conv(cfg.obs_shape[k], act=SimNorm(cfg))
 		else:
 			raise NotImplementedError(f"Encoder for observation type {k} not implemented.")

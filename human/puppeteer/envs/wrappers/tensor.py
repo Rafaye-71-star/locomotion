@@ -7,7 +7,7 @@ import torch
 
 class TensorWrapper(gym.Wrapper):
 	"""
-	Wrapper for converting numpy arrays to torch tensors.
+	将 numpy 数组转换成 torch 张量 的封装器
 	"""
 
 	def __init__(self, env):

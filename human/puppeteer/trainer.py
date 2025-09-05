@@ -6,7 +6,7 @@ from tensordict.tensordict import TensorDict
 
 
 class Trainer():
-	"""Trainer class for Puppeteer (TD-MPC2) training."""
+	"""木偶 (TD-MPC2) 训练的训练器类"""
 
 	def __init__(self, cfg, env, agent, buffer, logger):
 		super().__init__()
@@ -22,7 +22,7 @@ class Trainer():
 		print("Learnable parameters: {:,}".format(self.agent.model.total_params))
 
 	def common_metrics(self):
-		"""Return a dictionary of current metrics."""
+		"""返回当前度量的字典"""
 		return dict(
 			step=self._step,
 			episode=self._ep_idx,
@@ -30,7 +30,7 @@ class Trainer():
 		)
 
 	def eval(self):
-		"""Evaluate a Puppeteer (TD-MPC2) agent."""
+		"""评估木偶 (TD-MPC2) 代理"""
 		ep_rewards, ep_successes = [], []
 		for i in range(self.cfg.eval_episodes):
 			obs, done, ep_reward, t = self.env.reset(), False, 0, 0
@@ -53,7 +53,7 @@ class Trainer():
 		)
 
 	def to_td(self, obs, action=None, reward=None, terminated=None):
-		"""Creates a TensorDict for a new episode."""
+		"""为一个新的轮次创建一个张量字典 TensorDict(td)"""
 		if isinstance(obs, dict):
 			obs = TensorDict(obs, batch_size=(), device='cpu')
 		if action is None:

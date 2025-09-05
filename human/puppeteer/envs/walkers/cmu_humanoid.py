@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""A CMU humanoid walker."""
+""" CMU 人形行人"""
 
 import abc
 import collections
@@ -33,6 +33,7 @@ _XML_PATH = os.path.join(os.path.dirname(__file__),
 _WALKER_GEOM_GROUP = 2
 _WALKER_INVIS_GROUP = 1
 
+# CMU mocap 关节名
 _CMU_MOCAP_JOINTS = (
     'lfemurrz', 'lfemurry', 'lfemurrx', 'ltibiarx', 'lfootrz', 'lfootrx',
     'ltoesrx', 'rfemurrz', 'rfemurry', 'rfemurrx', 'rtibiarx', 'rfootrz',
@@ -182,7 +183,7 @@ _TORQUE_THRESHOLD = 60
 
 
 class _CMUHumanoidBase(legacy_base.Walker, metaclass=abc.ABCMeta):
-  """The abstract base class for walkers compatible with the CMU humanoid."""
+  """与 CMU 人形机器人兼容的 行人抽象基类 """
 
   def _build(self,
              name='walker',
@@ -193,7 +194,7 @@ class _CMUHumanoidBase(legacy_base.Walker, metaclass=abc.ABCMeta):
     if name:
       self._mjcf_root.model = name
 
-    # Set corresponding marker color if specified.
+    # 如果指定了，则设置相应的标记颜色。
     if marker_rgba is not None:
       for geom in self.marker_geoms:
         geom.set_attributes(rgba=marker_rgba)

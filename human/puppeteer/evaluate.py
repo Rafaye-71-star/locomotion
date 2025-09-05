@@ -83,18 +83,21 @@ def evaluate(cfg: dict):
 		if cfg.save_video:
 			frames = [env.render()]
 		while not done:
-			action = agent.act(obs, t0=t==0)  # 计算动作
-			obs, reward, done, info = env.step(action)  # 与环境交互
+			action = agent.act(obs, t0=t==0)  # 计算动作（高层规划）
+			obs, reward, done, info = env.step(action)  # 执行动作（低层控制）
 			ep_reward += reward
 			t += 1
 			if cfg.save_video:
 				frames.append(env.render())
+		# 保存每个轮次（轨迹）的奖励
 		ep_rewards.append(ep_reward)
 		ep_successes.append(info['success'])
+		# 每个轮次结束后保存视频
 		if cfg.save_video:
 			frames = np.stack(frames)
 			imageio.mimsave(
 				os.path.join(video_dir, f'{cfg.task}-{i}.mp4'), frames, fps=15)
+	# 计算20个轮次的平均奖励
 	ep_rewards = np.mean(ep_rewards)
 	ep_successes = np.mean(ep_successes)
 	print(colored(f'  {cfg.task:<22}' \

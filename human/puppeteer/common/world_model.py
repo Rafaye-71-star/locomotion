@@ -10,7 +10,7 @@ from common import layers, math, init
 
 class WorldModel(nn.Module):
 	"""
-	TD-MPC2 implicit world model architecture.
+	基于模型预测控制的时间差分学习 (TD-MPC2) 隐式世界模型架构
 	"""
 
 	def __init__(self, cfg):
@@ -67,8 +67,8 @@ class WorldModel(nn.Module):
 
 	def encode(self, obs):
 		"""
-		Encodes an observation into its latent representation.
-		This implementation assumes a single state-based observation.
+		将观测编码进隐表征中。
+		这种实现方式假定只有一种基于状态的观测
 		"""
 		if isinstance(obs, (dict, TensorDict)):
 			out = {}
@@ -123,12 +123,11 @@ class WorldModel(nn.Module):
 
 	def pi(self, z):
 		"""
-		Samples an action from the policy prior.
-		The policy prior is a Gaussian distribution with
-		mean and (log) std predicted by a neural network.
+		从先验策略(policy prior) 中采样动作
+		该先验策略是一个高斯分布，其均值和（对数）标准差由神经网络预测。
 		"""
-		# Gaussian policy prior
-		mu, log_std = self._pi(z).chunk(2, dim=-1)
+		# 高斯先验策略
+		mu, log_std = self._pi(z).chunk(2, dim=-1)  # 使用 多层感知机（MLP）预测均值和对数标准差
 		log_std = math.log_std(log_std, self.log_std_min, self.log_std_dif)
 		eps = torch.randn_like(mu)
 
