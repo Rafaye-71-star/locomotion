@@ -17,9 +17,17 @@ exit 0
 python puppeteer/train.py task=stand low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt
 python puppeteer/train.py task=walk low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt
 python puppeteer/train.py task=run low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt
+
+
 :: 验证 3 个非视觉任务：stand、walk、run
-python puppeteer/evaluate.py task=run low_level_fp=%MODEL_PATH%model/tracking.pt checkpoint=%MODEL_PATH%model/tracking.pt save_video=true
-:: python puppeteer/evaluate.py task=run low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/model/tracking.pt save_video=true
+
+:: 验证站立
+:: python puppeteer/evaluate.py task=stand low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/logs/stand/1/default/models/1500000.pt save_video=true
+
+:: 验证跑步
+python puppeteer/evaluate.py task=run low_level_fp=%MODEL_PATH%model/tracking.pt checkpoint=%MODEL_PATH%logs/run/1/default/models/1500000.pt save_video=true
+:: python puppeteer/evaluate.py task=run low_level_fp=D:/work/workspace/locomotion/human/model/tracking.pt checkpoint=D:/work/workspace/locomotion/human/logs/run/1/default/models/1500000.pt save_video=true
+
 
 
 :: 验证 5 个视觉任务
