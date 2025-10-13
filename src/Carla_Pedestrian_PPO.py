@@ -477,6 +477,8 @@ if __name__ == "__main__":
     vec_env = DummyVecEnv([lambda: wrapped_env])
 
     # 配置PPO模型（优化参数）
+    # policies (pi function)
+    # value function (vf)
     model = PPO(
         "MlpPolicy",
         vec_env,
