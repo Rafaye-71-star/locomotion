@@ -1,0 +1,702 @@
+\documentclass[lettersize,journal]{IEEEtran}
+\usepackage{amsmath,amsfonts}
+\usepackage{algorithmic}
+\usepackage{orcidlink}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage{textcomp}
+\usepackage{stfloats}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{cite}
+\hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
+% updated with editorial comments 8/9/2021
+% 为了插入eps文件，pdflatex 编译时候需要加入 --shell-escape 选项
+
+\begin{document}
+
+\title{Brain-inspired Pedestrian Navigation \\ Based on Unreal Engine in Complex Urban Environments}
+
+\author{Haidong~Wang,~Pengfei~Xiao,Ao~Liu, Jianhua~Zhang,~and Qia~Shan
+        % <-this % stops a space
+\thanks{H. Wang is with Hunan University of Technology and Business, Changsha 410082, China, and Xiangjiang Laboratory; P. Xiao, A. Liu, J. Zhang and Q. Shan are with Hunan University Of Technology and Business, Changsha 410082, China (e-mail: whd@hutb.edu.cn; 2893666867@qq.com; 2496556459@qq.com; zhangjianhua6682@126.com; s540534349@163.com).}}% <-this % stops a space
+ %\thanks{Manuscript received April 19, 2021; revised August 16, 2021.}}
+
+% The paper headers
+\markboth{Journal of \LaTeX\ Class Files,~Vol.~14, No.~8, August~2021}%
+{Shell \MakeLowercase{\textit{et al.}}: A Sample Article Using IEEEtran.cls for IEEE Journals}
+
+%\IEEEpubid{0000--0000/00\$00.00~\copyright~2021 IEEE}
+% Remember, if you use this you must call \IEEEpubidadjcol in the second
+% column for its text to clear the IEEEpubid mark.
+
+\maketitle
+
+\begin{abstract}
+With the advancement of smart city infrastructure, pedestrian navigation systems face increasing challenges in handling complex and dynamic urban environments. 
+Traditional rule-based planning approaches struggle to adapt to real-time variations in pedestrian behavior. 
+This study proposes a pedestrian navigation and control system based on the Unreal Engine platform and HUTB plugin, integrating reinforcement learning to optimize path planning and obstacle avoidance. 
+By simulating realistic traffic scenarios, the system provides a high-fidelity virtual environment for training and evaluating intelligent agents. 
+Reinforcement learning algorithms such as DQN and PPO are applied to improve navigation decision-making, guided by a multi-dimensional reward function that balances goal achievement, safety, and path efficiency. 
+Experiments conducted in various simulation scenarios demonstrate the system's effectiveness in enhancing navigation accuracy, obstacle avoidance success, and overall planning efficiency. 
+The results validate the feasibility of combining virtual simulation with reinforcement learning, offering a scalable and cost-effective approach to intelligent pedestrian navigation, and laying the groundwork for future research in multi-agent collaboration and intelligent traffic systems.
+The source code and datasets are available at \underline 
+{https://github.com/OpenHUTB/locomotion/tree/master/src}.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Brain-inspired model, Pedestrian navigation, Path planning, Obatacle avoidance, Reinforcement learning.
+\end{IEEEkeywords}
+
+\section{Introduction}
+\IEEEPARstart{P}{edestrian} navigation and control systems play a crucial role in modern traffic management in the context of smart cities and intelligent transportation. 
+As a vital component of urban transportation systems, pedestrians exhibit significant randomness and diversity in their behavior, posing numerous challenges to traditional traffic management and path planning methods. 
+Research on pedestrian navigation systems aims to improve pedestrian safety and travel efficiency through real-time path optimization and intelligent control. 
+However, traditional navigation methods, which are mostly rule-based and rely primarily on static preset parameters, struggle to cope with the rapid changes in pedestrian behavior in complex and dynamic environments. 
+For example, when faced with sudden obstacles or dense traffic flows, traditional algorithms often fail to quickly adjust path planning or optimize decisions in real time, impacting the reliability and safety of the navigation system.
+
+%\begin{figure}[!t]
+%	\centerline{\includegraphics[width=\columnwidth]{picture/picture1.eps}}
+%	\caption{The overall preview of the digital twin is provided through UTDT. The technical process from real vehicle trajectory to digital twin trajectory and traffic flow simulation is demonstrated.}
+%	\label{fig:1}
+%\end{figure}
+
+Artificial intelligence (AI) has rapidly advanced in recent years. 
+Reinforcement learning, a data-driven decision-making optimization method, offers a novel approach to pedestrian navigation. 
+By learning optimal strategies through interaction between an agent and its environment, it enables real-time decision optimization in dynamic environments, making it particularly well-suited for complex, nonlinear, and unstructured scenarios. 
+However, relying solely on reinforcement learning is insufficient to fully address pedestrian navigation challenges. 
+The high cost and high risk of data collection in real-world environments significantly limit the training and widespread adoption of reinforcement learning in practical applications.
+
+
+% 行人导航的挑战
+Although pedestrian navigation technology has made significant progress, it still faces many challenges such as complex behavior modeling, dynamic environment adaptability, and multi-agent collaborative optimization in complex dynamic environments.
+%
+Complex modeling of pedestrian behavior: Pedestrian behavior is highly diverse and random. 
+Zhao Jing et al. [26] proposed a pedestrian crossing model based on dynamic signal optimization to improve signal control efficiency and safety through behavior modeling. 
+Foxlin et al.~\cite{foxlin2005pedestrian} designed a pedestrian trajectory tracking method based on inertial sensors to provide technical support for complex behavior modeling. 
+The Changsha Smart Traffic Light System [28] significantly reduced intersection accidents through LED dynamic prompts and a 9-megapixel illegal capture unit. 
+The MFS-MSTD model developed by Zhang et al.~\cite{jiyu2024joint} reduced traffic repair errors by 52\% in non-random missing scenarios.
+
+
+
+This research, based on HUTB, utilizes Unreal Engine, a highly realistic virtual scene construction platform, providing an ideal tool for addressing the challenges of collecting data from real-world environments, as shown in Figure~\ref{fig:1}. 
+Unreal Engine can generate complex and diverse dynamic environments while simulating the randomness and diversity of pedestrian behavior in real-world scenarios, providing a safe and low-cost experimental platform for training and testing reinforcement learning agents. 
+For example, Unreal Engine can simulate complex traffic scenes at intersections, realistically recreating the dynamic interactions between pedestrians and vehicles, creating experimental conditions for optimizing and validating reinforcement learning algorithms. 
+Furthermore, Unreal Engine supports the generation of diverse sensor data, including visual, inertial, and semantic information, further enriching the sources of training data for reinforcement learning.
+
+
+This study combines virtual simulation technology and reinforcement learning algorithms to solve the core problems of pedestrian navigation, including accurately modeling pedestrian behavior in dynamic environments. 
+Pedestrian behavior is affected by multiple factors such as traffic signals, dynamic changes in surrounding vehicles, and other pedestrian behaviors. 
+The primary challenge is to establish a high-precision pedestrian behavior model that can truly reflect the decision-making logic of pedestrians in different environments; 
+efficiently combine virtual simulation and reinforcement learning. 
+The effectiveness of reinforcement learning depends on the quality of the training environment. 
+The simulation capabilities of Unreal Engine provide the possibility for training efficient intelligent agents, but the design of efficient reinforcement learning algorithms that can fully utilize the diverse data generated by Unreal Engine is urgent; 
+balance path planning efficiency and pedestrian safety. 
+The pedestrian navigation system must improve path planning efficiency and give priority to pedestrian safety. 
+For example, finding a safe and efficient path in complex scenarios during rush hour is the research focus.
+
+
+The development of intelligent transportation systems places higher demands on pedestrian navigation systems, which require seamless collaboration with other traffic participants such as vehicles and traffic lights to optimize the operating efficiency of the transportation system. 
+With the development of multi-agent technology, pedestrian navigation system research has also shifted from single-agent optimization to multi-agent collaboration. 
+Improving navigation efficiency and safety through multi-agent synergy is an important research direction in the future.
+
+
+This study introduces the simulation capabilities of Unreal Engine and the adaptive strategy optimization capabilities of reinforcement learning to attempt to overcome the above problems. The realistic scenes and diverse data of Unreal Engine provide support for complex behavior modeling and intelligent agent training, and the adaptive optimization capabilities of reinforcement learning algorithms enable intelligent agents to quickly adapt to changes in complex dynamic environments. The combination of the two can provide new theoretical and technical support for pedestrian navigation systems, and has broad application potential in fields such as intelligent transportation, autonomous driving, and urban planning.
+
+
+\section{Related Work}
+
+In recent years, significant progress has been made in the research of reinforcement learning and virtual simulation technologies in the fields of intelligent transportation and pedestrian navigation. 
+We reviews the application of reinforcement learning in pedestrian navigation, the role of Unreal Engine in intelligent agent training, and the challenges and development trends of pedestrian navigation.
+
+\textbf{Application of reinforcement learning in pedestrian navigation}
+Reinforcement learning (RL) is a method that learns optimal strategies through the interaction between an intelligent agent and its environment. 
+In recent years, it has been widely used in traffic system optimization and pedestrian navigation. 
+Compared with traditional path planning methods, RL can not only cope with dynamic environments but also improve system performance through continuous training, demonstrating high adaptability and optimization capabilities. 
+Reinforcement learning technology has achieved important results in traffic signal control. 
+Arulkumaran et al.\cite{arulkumaran2017deep} systematically expounded the theoretical advantages of deep reinforcement learning in dynamic decision-making. 
+Wei et al. \cite{wei2021recent} reviewed the research progress of reinforcement learning in traffic signal control and pointed out that deep reinforcement learning (DRL) has advantages in solving nonlinear optimization problems and is suitable for real-time dynamic traffic scenes; it is widely used in the field of path planning. 
+Yahya et al.~\cite{yahya2019motion} proposed an inertial sensor-based alignment-free motion capture method to provide technical support for pedestrian behavior modeling in dynamic scenes. 
+Chen et al.\cite{chen2018ionet} combined deep learning and reinforcement learning technology to design a causal reasoning-based path optimization method to introduce causal relationships to improve the adaptability of intelligent agents in dynamic environments. Deep reinforcement learning has injected new impetus into path planning research. 
+Mnih et al.~\cite{mnih2013playing} first proposed the deep Q-learning (DQN) algorithm to introduce deep neural networks into the deep Q-learning algorithm. 
+The reinforcement learning framework improves its performance in high-dimensional state space; 
+it has been widely studied in the field of multi-agent collaboration. 
+Clifton et al.\cite{clifton2020q} systematically demonstrated the theoretical advantages of the Q-learning algorithm in dynamic decision-making. 
+Lian et al.\cite{lian2023off} designed a multi-agent collaboration algorithm based on offline Q learning to solve the global optimization problem of complex dynamic scenes. 
+Zhang et al.\cite{zhang2019pedestrian} proposed a pedestrian safety perception signal control strategy. 
+The IVPL system developed by Yazdani et al.~\cite{yazdani2023intelligent} further verified the effectiveness of deep reinforcement learning in pedestrian priority signal control. 
+The adaptive road configuration algorithm proposed by Luo et al.\cite{ye2022adaptive} achieved a 49.55\% computational cost optimization in the dynamic adjustment of pedestrian flow through the distributed reinforcement learning paradigm.
+
+%\begin{figure*}[t]
+%	\centerline{\includegraphics[width=\textwidth]{picture/picture2.eps}}
+%	\caption{In the given scenario, synchronized cameras and LiDAR sensors detect vehicles, while the tracking system performs both single-intersection and multi-intersection multi-object tracking. The tracking data is subsequently utilized for trajectory reconstruction, ultimately enabling the creation of a digital twin that accurately replicates the traffic scenario. Where \(W_{s}\) and \(W_{e}\) are the coordinates of the endpoints of the tracked trajectory in the simulation scenario, and \(T_{1}\) and \(T_{2}\) are the trajectories tracked at different intersections.}
+%	\label{fig:2}
+%\end{figure*}
+
+
+\textbf{The role of Unreal Engine in training intelligent agents}
+As a highly realistic virtual scene construction tool, Unreal Engine provides an efficient experimental platform for training and verifying reinforcement learning algorithms in complex dynamic environments. 
+With its powerful virtual simulation capabilities and support for diverse scenarios, it has become an important tool for intelligent agent training and testing.
+
+
+Application of Unreal Engine in visual navigation research: 
+Unreal Engine is widely used in visual navigation research. 
+Redmon et al.\cite{redmon2017yolo9000} used Unreal Engine to generate enhanced data to train the YOLO target detection model. 
+Mourikis et al.~\cite{mourikis2007multi} combined Unreal Engine to build a visual inertial navigation system and optimized path planning through the multi-state constrained Kalman filter (MSCKF) algorithm. 
+The lightweight network proposed by Howard et al.\cite{howard2017mobilenets} provides important technical support for real-time target detection. 
+The ORB-SLAM3 algorithm proposed by Campos et al.\cite{campos2021orb} uses virtual scene data to significantly improve the robustness and accuracy of visual mapping and positioning, providing strong support for navigation in complex dynamic environments. 
+The DSR-YOLO model~\cite{oussouaddi2025dsr} achieves 70.25\% mAP@50 on the CityPersons dataset by integrating DCNv4 and SimAM attention mechanisms. 
+The STI-Bench benchmark test~\cite{li2025sti} shows that the average accuracy of current multimodal large models in spatiotemporal quantization tasks is less than 42%.
+
+
+Contribution of Unreal Engine in path planning: 
+Unreal Engine plays an important role in path planning research. 
+Guo et al.~\cite{guo2020improved} proposed a navigation system based on PDR/UWB fusion for pedestrian path optimization in complex environments by combining the dynamic simulation capabilities of Unreal Engine. 
+Wang et al.~\cite{wang2022llio} used Unreal Engine to build a highly simulated traffic scene to train reinforcement learning agent path planning strategy and verified its high efficiency and low cost in reinforcement learning training.
+
+
+Combination of Unreal Engine and target detection: 
+Unreal Engine has also been used to study the combination of target detection and path planning. 
+Redmon et al. \cite{redmon2017yolo9000} used Unreal Engine to generate enhanced data to train the YOLO target detection model to improve the performance of target detection in complex scenes. 
+The target detection framework proposed by Ren et al.~\cite{ren2016faster} provides a new idea for dynamic obstacle recognition. 
+The Shape-IoU indicator proposed by Zhang et al.~\cite{zhang2023shape} provides a better metric for the accuracy evaluation of dynamic obstacle detection. 
+Simonyan et al.~\cite{simonyan2014two} further studied the optimization effect of Unreal Engine on deep learning models to provide theoretical support for behavior prediction in complex traffic scenes.
+
+
+Application of Unreal Engine in multi-agent collaboration: 
+The simulation capability of Unreal Engine is widely used in multi-agent collaboration research. 
+Bochkovskiy et al.\cite{bochkovskiy2020yolov4} developed a traffic flow simulation tool based on Unreal Engine to verify the effectiveness of multi-agent collaboration algorithms. 
+Campos et al.~\cite{campos2021orb} verified the optimal performance of agents in multi-agent collaboration scenarios through virtual scene data, providing important support for multi-agent research on pedestrian navigation systems. 
+Liu et al.\cite{liu2020tlio} improved the accuracy of inertial odometers through tightly coupled learning methods.
+
+
+
+
+\section{Method}
+
+\subsection{Problem Definition}
+
+
+\textbf{Maximize expected return.}
+
+The goal of PPO reinforcement learning is to maximize the expected cumulative reward of the agent in the environment:
+\begin{equation}
+	J(\theta) = \mathbb{E}_{\tau \sim p_{\theta}(\tau)} \left[ \sum_{t=0}^{T} \gamma^t r_t \right]
+\end{equation}
+where $\theta$ represents the policy parameter, 
+$\gamma$ is the discount factor, 
+$\tau$ is the trajectory, and $r_t$ is the immediate reward.
+
+
+\textbf{Policy Gradients and Importance Sampling}.
+The gradient estimate of the traditional policy gradient method is:
+\begin{equation}
+	\nabla_{\theta} J(\theta) = \mathbb{E}_{\tau \sim p_{\theta}(\tau)} \left[ \nabla_{\theta} \log \pi_{\theta}(a_t|s_t) A_t \right]
+\end{equation}
+where $A_t$ is the advantage function, which measures the performance of an action relative to the average level. 
+PPO introduces the importance sampling ratio:
+\begin{equation}
+	r_t(\theta) = \frac{\pi_{\theta}(a_t|s_t)}{\pi_{\theta_{\text{old}}}(a_t|s_t)}
+\end{equation}
+Evaluate the new policy on data generated by the old policy.
+
+
+\textbf{Clipping objective function}.
+To avoid policy updates being too large, PPO uses a clipping mechanism:
+\[
+L_{\text{clip}}(\theta) = \mathbb{E}_t \left[ \min \left( r_t(\theta) A_t, \text{clip}(r_t(\theta), 1 - \epsilon, 1 + \epsilon) A_t \right) \right]
+\]
+Here, $\epsilon$ is a hyperparameter (usually 0.1–0.2), and the $\text{clip}$ function truncates the ratio within this range to ensure that each update is not too large.
+
+
+\textbf{Generalized Advantage Estimation(GAE)}
+To strike a balance between bias and variance, PPO uses GAE to calculate the advantage:
+\[
+A_t^{\text{GAE}} = \sum_{l=0}^{\infty} (\gamma \lambda)^l \delta_{t+l}
+\]
+where $\lambda$ is the balance coefficient and $V(s_t)$ is the state value function.
+
+
+\textbf{Complete optimization goal}
+
+In the Proximal Policy Optimization (PPO) algorithm, the policy update process not only focuses on the expected return of action selection, but also considers the estimated accuracy of the value function and the exploration ability of the policy. 
+Therefore, its total loss function consists of three parts: policy loss, value function loss, and entropy regularization term. 
+The specific form is as follows:
+\begin{equation}
+	L(\theta) = L_{\text{clip}}(\theta) - c_1 L_{\text{VF}}(\theta) + c_2 S[\pi_{\theta}](s_t)
+\end{equation}
+$\theta$ represents the current policy network parameters and the three terms of the loss function have the following meanings:
+
+% Actor(策略网络)
+The first term, $L_{\text{clip}}(\theta)$, is the clipping policy loss that measures the degree of deviation between the new and old policies. 
+It limits the policy update amplitude by truncating the policy probability ratio to ensure that each update is within the "near-end" range and avoid instability caused by excessive deviation.
+
+% Critic (价值网络)
+The second term $L_{\text{VF}}(\theta)$ is the value function loss that uses the mean square error to evaluate the deviation between the current value estimate and the actual experience return. 
+It improves training stability and target expected value estimation accuracy by guiding the value network to accurately fit the environment state value. 
+The weight coefficient $c_1$ controls its proportion in the total objective function.
+
+
+% 探索熵奖励
+The third term, $S[\pi_{\theta}](s_t)$, is the policy entropy term, which measures the uncertainty of the current policy. 
+This term enhances the agent's exploration ability by encouraging the policy to output a more uniform probability distribution and prevents it from falling into local optima. 
+The entropy term's weight, $c_2$, determines its influence on the overall optimization.
+
+
+By introducing the above three items, the PPO algorithm pursues the maximization of strategy benefits while taking into account the value function approximation quality and strategy diversity, thereby achieving a more robust and efficient strategy optimization process.
+
+
+
+
+
+
+\subsection{Brain-like Navigation Model}
+
+
+\subsection{Reward Design} \label{sec:reward}
+
+The design of the reward function is crucial in reinforcement learning tasks. 
+In pedestrian navigation task, it directly affects the decision-making behavior of the intelligent agent. A properly designed reward function is the key to achieving efficient and stable navigation. The following is the design philosophy and implementation details of the reward function in this system:
+
+
+\textbf{Goal Achievement Reward.}
+The goal achievement reward encourages pedestrians to approach the goal as quickly as possible, providing a higher reward as they get closer. 
+By adjusting the reward based on the change in distance to the goal, the model ensures that it learns fast and efficient path planning.
+
+\begin{equation}
+	R_{\text{target}} =
+	\begin{cases}
+		1000 \cdot \mathbb{X}(d_{\text{target}}<3) & \text{Termination Condition} \\
+		\Delta d \times 50 \times \left(1 - \frac{d_{\text{target}}}{100}\right) & \text{Normal status}
+	\end{cases}
+\end{equation}
+where 
+\begin{itemize}
+	\item \( \Delta d = d_{\text{prev}} - d_{\text{target}} \) represents the change in single-step distance
+	\item Dynamic coefficient strengthens the proximity bonus: when \( d_{\text{target}} \) is in the range \([0, 100]\), the coefficient decays linearly from 1.0 to 0.0
+\end{itemize}
+
+
+
+\textbf{Path Following Reward.}
+%
+The path following reward encourages pedestrians to stay on the intended path. 
+By calculating the pedestrian's lateral deviation from the path, the reward is adjusted to ensure that the pedestrian stays on the correct path as much as possible.
+
+\begin{equation}
+	R_{\text{path}} =
+	\begin{cases}
+		1.5 \cdot \left(1 - \frac{\Delta_{\text{dev}}}{2}\right) & \Delta_{\text{dev}} \leq 2\ \text{m} \\
+		-1.0 & \Delta_{\text{dev}} > 2\ \text{m}
+	\end{cases}
+\end{equation}
+where \( \Delta_{\text{dev}} = \left\| \vec{p}_{\text{current}} \times \vec{v}_{\text{forward}} \right\| / \left\| \vec{v}_{\text{forward}} \right\| \) is the calculation method of path deviation.
+
+
+
+\textbf{Safety Obstacle Avoidance Mechanism.}
+The safety obstacle avoidance mechanism aims to ensure pedestrian safety by penalizing collision events and dangerous distances, avoiding collisions with obstacles.
+
+\begin{equation}
+	R_{\text{safety}} =
+	\begin{cases}
+		-500 \cdot \mathbb{X}_{\text{collision}} & \text{Collision event} \\
+		-\dfrac{0.5}{d_{\text{obs}} + 0.5} & d_{\text{obs}} \leq 2\ \text{m} \\
+		-(v_{\text{prev}} - v_{\text{curr}}) & \Delta v > 1\ \text{m/s}
+	\end{cases}
+\end{equation}
+where
+\begin{itemize}
+	\item \( \mathbb{X}_{\text{collision}} \) represents a collision event, and a penalty of -500 is given when a collision occurs.
+	\item \( d_{\text{obs}} \) is the minimum distance to the obstacle. If it is less than 2 meters, the penalty is inversely proportional to the distance.
+	\item \( \Delta v = v_{\text{prev}} - v_{\text{curr}} \) is the change in speed. If the speed drops by more than 1 meter per second, a penalty is imposed.
+\end{itemize}
+
+
+\textbf{Movement pattern optimization.}
+%
+The goal of movement pattern optimization is to ensure pedestrians maintain an appropriate speed range. By setting rewards for different speed ranges, pedestrians are encouraged to choose the appropriate speed for different distances.
+
+\begin{equation}
+	R_{\text{motion}} =
+	\begin{cases}
+		0.2 & \text{Low-speed compliance}\\&(0.3 \leq v \leq 1.0)\ \cap\ d_{\text{target}} < 5\ \text{m} \\
+		0.1 & \text{Medium-speed compliance}\\&(0.5 \leq v \leq 1.5) \\
+		-0.2(v-1.0) & \text{Speeding state} \\& (v > 1.0)\ \cap\ d_{\text{target}} < 5\ \text{m}
+	\end{cases}
+\end{equation}
+
+
+\textbf{Time efficiency penalty.}
+%
+The purpose of the time efficiency penalty is to prevent the model from making excessive ineffective moves or wandering, encouraging quick completion of the task.
+
+\begin{equation}
+	R_{\text{time}} = -0.01 \cdot t_{\text{step}}
+\end{equation}
+where a fixed time penalty is imposed at each step to encourage efficient path planning.
+
+
+
+\textbf{Termination condition reward.}
+%
+The purpose of the termination condition reward is to give the model an additional reward when it reaches the goal position, or to terminate the model if it collides.
+
+\begin{equation}
+	R_{\text{terminal}} =
+	\begin{cases}
+		+1000 \cdot \mathbb{X}(d_{\text{target}} < 2\ \text{m}\ \cap\ \theta_{\text{error}} < 45^\circ), & \\ \text{Precise arrival} \\
+		-500 \cdot \mathbb{X}_{\text{collision}}, & \\ \text{Collision termination}
+	\end{cases}
+\end{equation}
+where 
+\begin{itemize}
+	\item \( \theta_{\text{error}} = \left| \arctan\left(\frac{-\Delta y}{\Delta x}\right) - \theta_{\text{current}} \right| \) represents the angular deviation between the current heading and the target direction.
+	\item The double termination condition ensures the correct orientation of the target point.
+\end{itemize}
+
+
+\textbf{Composite Reward Architecture.}
+%
+The purpose of the composite reward architecture is to weight the individual reward signals together to form a single reward value. 
+This ensures that the model is balanced when considering multiple objectives.
+
+\begin{equation}
+	R_{\text{total}} = R_{\text{target}} + R_{\text{path}} + R_{\text{safety}} + R_{\text{motion}} + R_{\text{time}} + R_{\text{terminal}}
+\end{equation}
+
+The reward function consists of \( R_{\text{target}} \), \( R_{\text{path}} \), \( R_{\text{safety}} \), \( R_{\text{motion}} \), \( R_{\text{time}} \), and \( R_{\text{terminal}} \). 
+\( R_{\text{target}} \) is the target achievement reward, which aims to motivate the agent to approach the navigation endpoint as quickly as possible; 
+\( R_{\text{path}} \) is the path tracking reward, which encourages the agent to move smoothly along the preset path; 
+\( R_{\text{safety}} \) is the safety reward used to constrain pedestrians to avoid collisions and danger zones; 
+\( R_{\text{motion}} \) is the motion mode reward, which optimizes the behavior by guiding reasonable speed and posture; 
+\( R_{\text{time}} \) is the time efficiency penalty, which is used to constrain slow behavior and improve overall path efficiency; 
+and \( R_{\text{terminal}} \) is the termination condition reward, which is used to provide the final positive incentive when the task is completed.
+
+
+
+%\begin{figure}[!t]
+%	\centerline{\includegraphics[width=\columnwidth]{picture/picture3.eps}}
+%	\caption{(a) Multi-sensor arrangement on the ego vehicle, including 6 cameras and 1 lidar; (b) Coordinate transformation process from the ego vehicle system (left) to the lidar coordinate system (right) through JPDA, and finally converted to world coordinate in the simulation scenario through the transformation matrix.} 
+%	\label{fig:3} 
+%\end{figure}
+
+
+
+\subsection{Brain-inspired Training}
+
+
+
+
+%\begin{figure}[!t]
+%	\centerline{\includegraphics[width=\columnwidth]{picture/picture5.eps}}
+%	\caption{Trajectory restoration diagram, showing how to generate predicted trajectories between intersections from multi-object tracking trajectories and then obtain the complete vehicle trajectory.} 
+%	\label{fig:5} 
+%\end{figure}
+
+
+
+\subsection{Path planning and obstacle avoidance design}
+
+To enable pedestrians to autonomously navigate from their starting point to their destination, this study implements a path planning module based on the sidewalk map information of the Carla simulation platform. 
+It also designs obstacle avoidance logic by combining lidar sensors with collision detection mechanisms, making the training and inference processes highly interactive and safe.
+
+
+\textbf{Waypoint Path Planning}.
+The path planning mechanism in versions v1.2 and v1.3 of this system utilizes pedestrian navigation information provided by Carla, using its map-based waypoint system for path planning. Once a pedestrian is generated, the path planning module automatically generates a navigable sidewalk path based on the specified starting and ending locations using the following process:
+
+
+
+\textbf{Obstacle avoidance and dynamic response mechanism}
+The obstacle avoidance module primarily responds to obstacles based on the point cloud information returned in real time by the LiDAR sensor from the Carla platform. 
+It searches for the minimum value (min\_obstacle\_distance) of the closest point to an obstacle in each acquired point cloud data set, using this value as the initial value for obstacle avoidance. 
+If the distance is less than 2.0 meters, the speed is reduced, reducing the pedestrian's initial obstacle avoidance value to less than 0.8 meters per second to minimize collision probability. 
+A penalty for obstacle avoidance is added to the reward function. 
+If the pedestrian is too close to an obstacle and traveling too fast, the reward is deducted. 
+This approach discourages the agent from taking dangerous actions. 
+Furthermore, if a collision sensor is detected, the agent immediately exits the segment and receives a large penalty (-500), increasing the weight of the feedback given to collision information.
+
+
+This mechanism combines three algorithms: sensors, speed controllers, and reward function adjustment, to form a complete obstacle avoidance control algorithm. 
+During training, the agent learns how to plan paths in a dynamic and complex environment, finding a balance between obstacle avoidance and path planning to ensure safer and more stable path planning.
+
+
+\textbf{Path Planning and Obstacle Avoidance Collaborate.}
+%
+The path planning module and obstacle avoidance module are closely linked. 
+To ensure a safe and reliable path, pedestrians continuously detect obstacles along the planned path using lidar and collision sensors. 
+When encountering obstacles, they maneuver to avoid collisions and deviations from the planned path. 
+After performing obstacle avoidance, the path planning module promptly searches for the optimal path and continues on toward the target path. 
+This ensures that pedestrians, even in complex environments, can safely and efficiently complete their path tasks.
+
+
+\subsubsection{Model Training}
+
+
+
+\section{Experiments}
+
+
+\subsection{Simulation Environment.}
+
+We conducted simulation experiments in CARLA, whose advantage lies in its provision of a highly realistic virtual environment capable of accurately simulating complex traffic scenarios and diverse driving conditions. 
+CARLA supports flexible sensor configurations, such as cameras and LiDAR, facilitating multimodal data acquisition and fusion experiments\cite{Alpher22e}. 
+We conducted relevant experiments in the Town10 and Town01 scenarios in CARLA.
+The complex urban structure and dense traffic flow of Town10 can simulate highly dynamic real traffic environments, while the simple layout and clear rules of Town01 make it easy to construct controlled experimental scenarios.
+This scenario diversity can effectively verify the generalization ability of the model under different traffic conditions and provide a reliable basis for actual road deployment.
+
+\subsection{Implementation Details}
+
+
+By designing the reward function described in Sec.~\ref{sec:reward}, the pedestrian navigation model enables the agent to avoid obstacles in the environment, quickly reach its destination, and continuously optimize its action decisions to find the optimal path. 
+This section implements navigation by setting specific scenarios in the environment and using appropriate sensors, such as observation space coupling and dynamic reward coefficient calculation.
+
+
+This model's path planning and training environment possess several key features. 
+The observation space, in the form of a 12-dimensional feature vector, integrates state information such as local pathpoint coordinates \(x_{\text{wp}}, y_{\text{wp}}\) and obstacle distances \(d_{\text{obs}}\), enhancing state representation and perception accuracy. 
+A target distance factor of \(1 - \frac{d}{100}\) is introduced into the reward function, enabling adaptive reward intensity as navigation progresses, improving training sensitivity and stability. 
+The safety mechanism is designed as a layered structure, comprising a collision detection module, obstacle distance determination, and speed change analysis, providing comprehensive protection for pedestrian behavior in complex environments. 
+
+
+
+\subsection{Experimental Effect}
+
+\textbf{Multi-Object Tracking.}
+Table \ref{tab:2} presents the multi-object tracking performance metrics across different scenarios (Town01 and Town10) and intersections (Intersection 1-5). 
+The data reveals significant variations in performance across different intersections. 
+In Town01, Intersection 4 shows better performance in terms of Recall and Precision, while Intersection 3 has a higher False Track Ratio (FTR), indicating a greater proportion of incorrect tracking. 
+In Town10, Intersection 4 also demonstrates relatively high Recall and Precision, but Intersection 5 has significantly higher False Positives (FP) and False Negatives (FN) compared to other intersections, suggesting a higher number of misidentified and missed targets. 
+Identity Switches (IDS) are notably higher in Intersection 4 of both Town01 and Town10, indicating more frequent target identity switches at these intersections. 
+Intersection 2 (Town01) shows higher Mostly Tracked (MT), while Intersection 1 (Town10) has higher Mostly Lost (ML), indicating notable tracking stability differences.
+
+\begin{table}[t]
+	\centering
+	\caption{Table of Trajectory and Vehicle Control Indicators}
+	\label{tab:3}
+	\renewcommand\arraystretch{1.3}
+	\begin{tabular}{|c|c|c|c|c|c|}
+		
+		\hline
+		Scene & Type & TOR(\%) & MPE(m) & MaxPE(m) & FPE(m) \\
+		\hline
+		\multirow{3}{*}{Town01} & TT-DT & 50.2143 & 79.5798 & 33.1382 & 19.8970 \\
+		\cline{2-6}
+		& TT-GT & 18.4326 & 59.3773 & 79.6541 & 64.0980 \\
+		\cline{2-6}
+		& Control & \multicolumn{4}{|c|}{MLE:2.1889, MLOE:0.5345, MD:1.2015} \\
+		\hline
+		\multirow{3}{*}{Town10} & TT-DT & 10.8957 & 82.4108 & 105.8893 & 105.0854 \\
+		\cline{2-6}
+		& TT-GT & 34.4533 & 52.5575 & 36.0566 & 31.4600 \\
+		\cline{2-6}
+		& Control & \multicolumn{4}{|c|}{MLE:1.9835, MLOE:0.2614, MD:1.3780} \\	
+		\hline
+	\end{tabular}
+\end{table}
+
+\begin{table}[t]
+	\centering
+	\caption{Twin Accuracy Comparison Across Detection Algorithms}
+	\label{tab:5}
+	\renewcommand\arraystretch{1.3}
+	\resizebox{\columnwidth}{!}{ 
+		\begin{tabular}{|c|c|c|c|c|c|}
+			\hline
+			Detection & Type & TOR(\%) & MPE(m) & MaxPE(m) & FPE(m) \\
+			\hline
+			\multirow{2}{*}{LiDAR} & TT-DT & 9.9900 & 93.1018 & 107.3894 & 102.0975 \\
+			\cline{2-6}
+			& TT-GT & 28.9800 & 33.8796 & 35.0967 & 35.0967 \\
+			\hline
+			\multirow{2}{*}{Camera} & TT-DT & — & — & — & — \\
+			\cline{2-6}
+			& TT-GT & — & — & — & — \\
+			\hline
+			\multirow{2}{*}{YOLOv3+LiDAR} & TT-DT & 10.0866 & 98.2137 & 100.6244 & 98.7246 \\	
+			\cline{2-6}
+			& TT-GT & 31.9012 & 78.6352 & 102.4719 & 59.6735 \\
+			\hline
+			\multirow{2}{*}{YOLOv4+LiDAR} & TT-DT & 10.8957 & 82.4108 & 105.8893 & 105.0854 \\
+			\cline{2-6}
+			& TT-GT & 34.4533 & 52.5575 & 36.0566 & 31.4600 \\
+			\hline
+		\end{tabular}
+	}
+\end{table}
+
+However, detection accuracy is also affected by the number of vehicles passing through the intersection, and the system accuracy improves significantly in low traffic conditions.
+These data highlight the performance variations of the multi-object tracking system across different scenarios and intersections, providing valuable insights for further optimization.
+
+\textbf{Twin.}
+The performance of the digital twin is primarily reflected by two sets of metrics: trajectory coincidence and control error (as shown in Table \ref{tab:3}). 
+These two tables compare the performance evaluation metrics of the digital twin in two scenarios, Town01 and Town10. 
+The TOR in Town01 is significantly higher than that in Town10 in the comparison of the Tracking Trajectory with the Digital Twin trajectory (TT-DT), indicating that it has a superior path tracking ability, which may be due to the simpler environment or the more stable control algorithm.
+However, for the comparison between the Tracked Trajectory and Ground Truth (TT-GT), it is higher in Town10, probably because our point cloud dataset was collected in Town10 and is more suitable for vehicle detection in this scenario.
+In terms of Mean Position Error (MPE), the two are close. 
+However, the Maximum Position Error (MaxPE) and Final Position Error (FPE) in Town10 far exceed those in Town01, revealing severe localization deviations in extreme cases, likely caused by complex environments or dynamic obstacles. 
+For Mean Lateral Error (MLE) and Mean Longitudinal Error (MLOE), Town10 performs slightly better, suggesting more precise lateral and longitudinal control, though overall stability is lacking. 
+In terms of Mean Delay (MD), Town01 (1.20 seconds) outperforms Town10 (1.38 seconds), demonstrating higher task execution efficiency.
+
+%\begin{figure}[!t]
+%	\centering
+%	\centerline{\includegraphics[width=\columnwidth]{picture/picture6.eps}}
+%	\caption{Analysis of the impact of point cloud detection threshold on multi-object tracking performance. Experiments show that the accuracy and threshold of vehicle detection are the key factors affecting tracking performance.} 
+%	\label{fig:6} 
+%\end{figure}
+
+\textbf{Detection Ablation for Digital Twins.}
+In the ablation experiment, we compared the multi-object tracking performance of different object detection algorithms and different sensor combinations in the Town10 scene.
+The experimental results are shown in Table \ref{tab:5}.
+When the camera is used alone, no valid trajectory can be generated (lack of depth information), and although the LiDAR can track the target alone, the overlap between its trajectory and the real annotation is significantly lower than that of the multi-sensor fusion solution; it is worth noting that the (\(RMOTA\) of LiDAR tracking alone is better than the camera-radar fusion, which shows that the camera may introduce noise (such as view occlusion) in position tracking, but it is still indispensable in the target association stage.
+The experiment further shows that the 2D/3D fusion effect of YOLOv4/LiDAR is the best (about 8\% higher than the YOLOv3 solution), which verifies the improvement of algorithm optimization on tracking accuracy.
+These results show that although the camera will suppress the position tracking accuracy, it has an irreplaceable role in target association, and the system design needs to be optimized through sensor complementarity.
+
+\subsection{Details Explanation}
+
+We conducted ablation studies on LiDAR detection and multi-intersection multi-object tracking in object detection to ensure that our experiments achieved the desired results.
+
+\textbf{Detecting Vehicles in 3D Point Clouds.}
+During the process of detecting vehicles in the 3D point cloud, we set a threshold for the detection results.
+Before optimizing the tracker hyperparameters, we conducted multiple experiments in the Town10 scenario, and the experimental results are shown in Fig. \ref{fig:6}.
+When the threshold is too low, some non-vehicle objects, such as trees and buildings, will be mistaken for vehicles. In some cases, even the cargo loaded on the vehicle will be mistaken for a vehicle, and the recognition accuracy will be greatly reduced.
+On the contrary, if the threshold is too high, some vehicles will be missed, such as smaller cars, which are occasionally mistaken for boxes and ignored.
+When the threshold is 0.6, there is obvious feature crossover, which is the best choice for comprehensive tracking performance.
+
+\textbf{Multi-Intersection and Multi-Object Tracking.}
+In the multi-intersection multi-target tracking experiment, the most critical task is the re-identification of vehicles across different intersections. 
+Therefore, we also set a threshold for the re-identification results: if the similarity score exceeds the threshold, the targets are considered the same vehicle; otherwise, they are deemed different vehicles. 
+During the experiment, we adjusted the threshold several times in the Town10 scenario, and the experimental results are shown in the Fig. \ref{fig:7}.
+We use 0.5 as the ReID threshold because it achieves the best balance between security, stability, and scalability, avoiding both the extreme error of a low threshold and the risk of trajectory breakage of a high threshold.
+
+%\begin{figure}[!t]
+%	\centering
+%	\centerline{\includegraphics[width=\columnwidth]{picture/picture7.eps}}
+%	\caption{Comparative analysis of vehicle re-identification threshold effects on trajectory matching accuracy, illustrating the relationship between threshold values and the alignment degree between tracked trajectories and ground truth trajectories in urban traffic scenarios.} 
+%	\label{fig:7} 
+%\end{figure}
+
+\subsection{Adaptive Data Association Threshold}
+
+\textbf{Background and Objectives.}
+In order to further improve the performance of the tracker highly depends with the hyperparameter setting. 
+Traditional manual parameter tuning is inefficient and difficult to find the global optimal solution. 
+For this reason, we adopt a Bayesian Optimization (BOM) approach to automatically optimize the following key parameters through an intelligent search strategy:
+
+\(\bullet\) DetectionProbability(DP): control the reliability of sensor detection.
+
+\(\bullet\) NewTargetDensity(NTD): threshold for target initialization.
+
+\(\bullet\) Confirmation/DeletionThreshold(CT/DT): trajectory lifecycle management.
+
+\(\bullet\) DeathRate(DR): robustness to handling targets leaving the scenario.
+
+\textbf{Optimization Processes.}
+Bayesian optimization is a hyper-parametric optimization method based on probabilistic models, which solves the global optimization problem of black-box functions by the strategy of “finding the best parameter with the least number of attempts”.
+The optimized multi-object tracking parameters are shown in Table \ref{tab:4}.
+Our optimization goal is to maximize \(RMOTA\) while reducing IDS and trajectory fragmentation.
+The process is as follows:
+1.Maximizing tracking performance by fitting existing data with a Gaussian process and constructing an objective function model in a 6-dimensional parameter space; 
+2.A small number of random parameter combinations are selected to calculate the value of the acquisition function, and the next parameter to be tested is selected (e.g., the point with the largest Expected Improvement); 
+3.Run the experiment to get the \(MOTA\) corresponding to the new parameters, add to the dataset, and repeat until the maximum number of iterations is reached or convergence is achieved.
+The improvement results after optimization compared with before optimization are shown in Fig. \ref{fig:4}. 
+%\begin{figure}[!t]
+%	\centerline{\includegraphics[width=\columnwidth]{picture/picture4.eps}}
+%	\caption{Comparison of \(RMOTA\) improvement (\%) after hyperparameter optimization on Town01 and Town10. The results demonstrate the effectiveness of the optimization strategies used in different scenarios.} 
+%	\label{fig:4} 
+%\end{figure}
+
+\begin{table}[t]
+	\centering
+	\caption{Table of Optimized Multi-Object Tracking Parameters}
+	\label{tab:4}
+	\renewcommand\arraystretch{1.3}
+	\begin{tabular}{|c|c|c|c|c|c|c|}
+		
+		\hline
+		Scene & Int. & DP & NTD & CT & DT & DR \\
+		\hline
+		\multirow{5}{*}{Town01} & 1 & 0.8241 & 6.9471e-06 & 0.9592 & 0.4761 & 0.4375 \\
+		\cline{2-7}
+		& 2 & 0.8638 & 2.6997e-06 & 0.9797 & 0.5624 & 0.4379 \\
+		\cline{2-7}
+		& 3 & 0.8457 & 4.2056e-07 & 0.9885 & 0.4010 & 0.5313 \\
+		\cline{2-7}
+		& 4 & 0.7049 & 1.2832e-07 & 0.9860 & 0.5936 & 0.5998 \\
+		\cline{2-7}
+		& 5 & 0.7083 & 4.1939e-06 & 0.9864 & 0.2173 & 0.6836 \\
+		\hline
+		\multirow{5}{*}{Town10} & 1 & 0.8993 & 2.5475e-07 & 0.8114 & 0.3347 & 0.5774 \\
+		\cline{2-7}
+		& 2 & 0.8849 & 3.5089e-06 & 0.9711 & 0.5980 & 0.6838 \\
+		\cline{2-7}
+		& 3 & 0.8123 & 1.4860e-07 & 0.9895 & 0.5577 & 0.6986 \\
+		\cline{2-7}
+		& 4 & 0.8594 & 3.3980e-06 & 0.9803 & 0.5654 & 0.5011 \\
+		\cline{2-7}
+		& 5 & 0.8852 & 2.0860e-06 & 0.9817 & 0.5634 & 0.6684 \\
+		\hline
+	\end{tabular}
+\end{table}
+
+%\begin{figure}[!t]
+%	\centerline{\includegraphics[width=\columnwidth]{picture/picture8.eps}}
+%	\caption{Our UTDT framework is successfully deployed in two other custom city scenes. Top: Changsha CEC Software Park. Bottom: Hunan University of Technology and Business. (Left) Real scene; (Right) Digital twin.} 
+%	\label{fig:8} 
+%\end{figure}
+\subsection{Limitations and Future Directions}
+
+\textbf{Problems Encountered in The Experiment.}
+During our experiments, we encountered the following issues: 
+1.When matching trajectories across multiple intersections, images of vehicles corresponding to each trajectory are needed to extract re-identification appearance features. 
+Acquiring these images is difficult, and the methods used can affect accuracy. 
+2.When matching trajectories, it is necessary to associate trajectories from all intersections. 
+However, due to ID switching, the trajectory of the same vehicle at a single intersection may be fragmented, making integration complex. 
+If only one trajectory is selected as the current intersection's trajectory for a vehicle, issues arise when the same vehicle returns to the intersection.
+
+\textbf{Shortcomings of Current Research.}
+As shown in Fig. \ref{fig:8}, although our experiments have been replicated in multiple real scenarios, there are still some limitations.
+For example, the detection accuracy of PointPillars is not high, resulting in suboptimal tracking performance. 
+Additionally, false detections may occur when acquiring images of vehicles corresponding to current trajectories, potentially leading to trajectory matching errors.
+
+\textbf{Vision of The Future.}
+Our experiments were conducted under offline conditions, meaning they lacked real-time capabilities. 
+If it is to be deployed in practice, it is necessary to overcome engineering challenges such as sensor network scale expansion and parameter adaptive adjustment.
+In future work, we aim to transition these experiments to an online framework to achieve high real-time performance, thereby enhancing their experimental value.
+
+
+\section{Conclusion}
+
+Through a series of experiments, we have demonstrated the application value of UTDT in intelligent transportation. 
+Digital twin technology can not only accurately replicate real-world traffic scenarios but also effectively predict future traffic conditions. 
+Multi-object tracking and the inference of unknown trajectories serve as strong evidence of this capability. 
+This holds significant value for the development of future cities.
+We hope that new large-scale datasets will be introduced in the future to further enhance the effectiveness of digital twins.
+
+\section{Acknowledgements}
+The authors gratefully acknowledge the financial support provided by the Natural Science Foundation of Hunan Province (No.2024JJ6190), Research on a new generation of brain-like intelligent computing framework based on ultra-large-scale real neural systems (No.24XJJCYJ01001), Scientific research project of Hunan Provincial Department of Education (No.22B0646), the Open Project of Xiangjiang Laboratory (No.23XJ03009), Xiangjiang Laboratory key project subproject (No.22XJ01001-2), the “Digital Intelligence +” interdisciplinary research project of Hunan University Of Technology and Business (No.2023SZJ19).
+
+\bibliographystyle{IEEEtran}
+\bibliography{reference}
+
+
+%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{authors/HaidongWang/HaidongWang.eps}}]{Haidong Wang} received the B.E. degree in Computer Science and Technology from Hunan University Of Technology and Business, Changsha, China, in 2014, the M.Sc. degree in Computer Technology from the University of Chinese Academy of Sciences (UCAS), Beijing, China, in 2017, and Ph.D. degree in Hunan University, Changsha, China. His current research interests include brain-like vision, deep learning and reinforcement learning.
+%\end{IEEEbiography}
+%
+%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{authors/PengfeiXiao/PengfeiXiao.eps}}]{Pengfei Xiao} received the B.E. degree in Computer Science and Technology from Changsha College, China, in 2022, and is now studying in Hunan University of Commerce and Industry, Changsha, China, pursuing a professional type master's degree in Computer Technology. His current research interests include brain-like perception, deep learning and autonomous driving.
+%\end{IEEEbiography}
+%
+%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{authors/AoLiu/AoLiu.eps}}]{Ao Liu} received the B.E. degree in Computer Science and Technology from Changsha College, China, in 2023, and is now studying in Hunan University of Commerce and Industry, Changsha, China, pursuing a professional type master's degree in Computer Technology. His current research interests include brain-like control and deep learning.
+%\end{IEEEbiography}
+%
+%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{authors/QiaShan/QiaShan.eps}}]{Qia Shan} received the B.E. degree in Network Engineering from Hainan University, Haikou, China, in 2020, and is currently pursuing the M.Sc. degree in Software Engineering at Hunan University Of Technology and Business, Changsha, China. His current research interests include brain-like affective computing and deep learning.
+%\end{IEEEbiography}
+%\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{authors/JianhuaZhang/JianhuaZhang.eps}}]{Jianhua Zhang} received the B.E. degree in Software Engineering from Taiyuan University of Technology, TaiYuan, China, in 2022,and M.Sc. degree in Software Engineering from the Hunan University Of Technology and Business, Changsha, China. His current research interests include brain-like vision and deep learning.
+%\end{IEEEbiography}
+
+\end{document}
+
+
