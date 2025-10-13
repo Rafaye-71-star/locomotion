@@ -1,27 +1,28 @@
-"""Distributional MPO learner implementation."""
+"""分布式MPO学习器实现"""
 
-import time
-from typing import List, Optional
-import re
+import time                             #用于测量时间、控制节奏、记录时间戳等
+from typing import List, Optional       #提供类型注解，如列表、可选类型，增强代码可读性
+import re                               #正则表达式模块，用于字符串匹配等（可能备用）
 
-import acme
-from acme import types
-from acme.tf import losses
-from acme.tf import networks
-from acme.tf import savers as tf2_savers
-from acme.tf import utils as tf2_utils
-from acme.utils import counting
-from acme.utils import loggers
-import numpy as np
-import sonnet as snt
-import tensorflow as tf
+import acme                             #强化学习库，提供构建和训练RL代理的工具
+from acme import types                  #定义了一些常用的类型别名和数据结构，方便在代码中使用和理解。
+from acme.tf import losses              #提供强化学习中常用的损失函数（如策略梯度损失等）
+from acme.tf import networks            #提供预定义的神经网络结构（策略网、Q网等）
+from acme.tf import savers as tf2_savers#提供 TensorFlow 模型保存与加载工具
+from acme.tf import utils as tf2_utils  #TensorFlow 2.x 的工具函数，常用于构建网络、处理变量等。
+from acme.utils import counting         #用于跟踪和计数训练过程中的各种指标（如步骤数、时间等）
+from acme.utils import loggers          #用于日志记录和监控训练过程（如写入 TensorBoard 等）
+import numpy as np                      #科学计算库，用于数组、数值运算
+import sonnet as snt                    #DeepMind 的神经网络库，用于构建模块化模型
+import tensorflow as tf                 #Google 的深度学习框架，用于训练和推理
 
 
 class DistributionalMPOLearner(acme.Learner):
-    """Distributional MPO learner."""
+    """分布式最大后验策略优化学习器"""
 
     def __init__(
         self,
+        #snt.Module是一种特殊的类，当你定义神经网络时继承它，就能拥有自动变量管理等功能
         policy_network: snt.Module,
         critic_network: snt.Module,
         target_policy_network: snt.Module,
@@ -48,36 +49,47 @@ class DistributionalMPOLearner(acme.Learner):
         time_delta_minutes: float = 30.,
     ):
 
-        # Store online and target networks.
+        # 在线存储和目标网络.
         self._policy_network = policy_network
         self._critic_network = critic_network
         self._target_policy_network = target_policy_network
         self._target_critic_network = target_critic_network
 
-        # Make sure observation networks are snt.Module's so they have variables.
+        # 请确保你定义的 observation networks（观察/预处理网络）是继承自 snt.Module（Sonnet 模块）的类，
+        # 这样 Sonnet 才能自动管理它们内部的神经网络参数（即 tf.Variables），从而使得这些参数能够正常参与训练、保存和加载等操作​.
         self._observation_network = tf2_utils.to_sonnet_module(
             observation_network)
         self._target_observation_network = tf2_utils.to_sonnet_module(
             target_observation_network)
 
-        # General learner book-keeping and loggers.
-        self._counter = counter or counting.Counter()
+        # 一般学习者簿记和记录员.
+        self._counter = counter or counting.Counter()   #如果没有提供计数器(counter = None)，就创建一个新的计数器
         self._logger = logger or loggers.make_default_logger('learner')
 
-        # Other learner parameters.
+        # 其他学习器参数.
         self._discount = discount
         self._num_samples = num_samples
         self._clipping = clipping
 
-        # Necessary to track when to update target networks.
+        # 当更新目标网络追踪是必要的.
         self._num_steps = tf.Variable(0, dtype=tf.int32)
         self._target_policy_update_period = target_policy_update_period
         self._target_critic_update_period = target_critic_update_period
 
-        # Batch dataset and create iterator.
-        # TODO(b/155086959): Fix type stubs and remove.
+        # 批处理数据集并创造迭代器.
+        # TODO(b/155086959): Fix type stubs and remove
+        '''
+        是一个典型的 ​​TODO 注释​​，通常出现在代码库（尤其是大型工程如 Google 内部项目、TensorFlow、Sonnet、Acme 等）中，用来标记 ​​待完成的改进任务​​，
+        并且通常关联了一个 ​​问题追踪编号（Issue / Bug ID）​​，这里是：b/155086959。.
+        '''
         self._iterator = iter(dataset)  # pytype: disable=wrong-arg-types
 
+
+        '''
+        这是一个非常典型的 Python ​​条件赋值（短路逻辑赋值）​​，用于初始化一个成员变量 self._policy_loss_module，
+        它的作用通常是设置一个用于计算​​策略损失（policy loss）​​的模块，在这里使用的是来自 losses模块的 
+        ​​MPO（Maximum a Posteriori Policy Optimization，最大后验策略优化）算法的损失模块​​。
+        '''
         self._policy_loss_module = policy_loss_module or losses.MPO(
             epsilon=1e-1,
             epsilon_penalty=1e-3,
@@ -88,19 +100,29 @@ class DistributionalMPOLearner(acme.Learner):
             init_log_alpha_stddev=10.)
 
         # Create the optimizers.
-        self._critic_optimizer = critic_optimizer or snt.optimizers.Adam(1e-4)
+        # snt.optimizers.Adam(1e-4)：创建一个 Sonnet 封装的 Adam 优化器，其学习率（learning rate）为 0.0001 (即 1×10⁻⁴)。
+        self._critic_optimizer = critic_optimizer or snt.optimizers.Adam(1e-4)  
         self._policy_optimizer = policy_optimizer or snt.optimizers.Adam(1e-4)
         self._dual_optimizer = dual_optimizer or snt.optimizers.Adam(1e-2)
 
         # Expose the variables.
+        '''
+        使用了 Sonnet 的 snt.Sequential，这是一个​​容器模块​​，它将多个 Sonnet 模块按顺序组合在一起，前一个模块的输出作为后一个模块的输入。
+        这里将两个网络模块按顺序组合：
+        self._target_observation_network：目标观察网络，可能用于对原始输入（如状态/观测）进行特征提取。
+        self._target_policy_network：目标策略网络，根据提取的特征决定采取的动作。
+        👉 所以，policy_network_to_expose是一个 ​​组合策略网络​​，输入原始观测，
+        先经过观察网络处理，再送到策略网络输出动作。它本身也是一个 snt.Module，并且具有自己的可训练参数（variables）。
+        '''
         policy_network_to_expose = snt.Sequential(
             [self._target_observation_network, self._target_policy_network])
+        # 以字典形式存储目标评论家网络和策略网络的变量，方便外部访问和管理
         self._variables = {
             'critic': self._target_critic_network.variables,
             'policy': policy_network_to_expose.variables,
         }
 
-        # Create a checkpointer and snapshotter object.
+        # 创建一个检查指针和快照对象.
         self._checkpointer = None
         self._snapshotter = None
 
