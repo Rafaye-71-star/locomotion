@@ -260,7 +260,24 @@ By introducing the above three items, the PPO algorithm pursues the maximization
 \subsection{Reward Design} \label{sec:reward}
 
 The design of the reward function is crucial in reinforcement learning tasks. 
-In pedestrian navigation task, it directly affects the decision-making behavior of the intelligent agent. A properly designed reward function is the key to achieving efficient and stable navigation. The following is the design philosophy and implementation details of the reward function in this system:
+In pedestrian navigation task, it directly affects the decision-making behavior of the intelligent agent. 
+A properly designed reward function is the key to achieving efficient and stable navigation. 
+The following is the design philosophy and implementation details of the reward function in this system:
+
+\textbf{Dopamine}.
+Dopamine is produced as a neurotransmitter by neurons whose cell bodies lie mainly in two clusters of neurons in the midbrain of mammals: the substantia nigra pars compacta (SNpc) and the ventral tegmental area (VTA). 
+Dopamine plays essential roles in many processes in the mammalian brain. 
+Prominent among these are motivation, learning, action-selection.
+%
+The dopamine's functions is clear that it is fundamental to reward processing in the mammalian brain.
+%
+Phasic responses of dopamine neurons signal reward predict errors, not reward itself. 
+In reinforcement learning's terms, a dopamine neuron's phasic response at a time t corresponds to $\delta_{t-1} = R_t + \gamma V(S_t) - V(S_{t-1})$, not to $R_t$.
+% 
+$\delta$ is the critical factor in the TD model of classical conditioning, and $\delta$ is the reinforcement signal for learning both a value function and a policy in an actor-critic architecture.
+%
+The reward signal $R_t$ is a crucial component of $\delta_{t-1}$, but it is not the complete determinant of its reinforcing effect in these algorithms. 
+The additional term $\gamma V(S_t) - V(S_{t-1})$ is the higher-order reinforcement part of $\delta_{t-1}$, and even if reward occurs ($R_t \neq 0$), the TD error can be silent if the reward is fully predicted.
 
 
 \textbf{Goal Achievement Reward.}
