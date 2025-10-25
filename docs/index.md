@@ -1,8 +1,8 @@
 title: 主页
 
-# [肌肉骨骼人的运动](https://github.com/OpenHUTB/locomotion)
+# [人的肌肉骨骼运动](https://github.com/OpenHUTB/locomotion)
 
-欢迎使用肌肉骨骼人的运动文档，该页面包含所有内容的索引。
+欢迎使用人的肌肉骨骼运动文档，该页面包含所有内容的索引。
 
 
 * [__简介__](#primary)  
