@@ -23,6 +23,7 @@ title: 主页
 ### OpenSim <span id="opensim"></span>
 
 [__安装__](opensim/installation.md) — OpenSim 安装入门
+[ 初试 ](https://github.com/OpenHUTB/locomotion/blob/master/docs/OpenSimCreator_OpenSim_Init.md) - OpenSimCreator_OpenSim_初试
 
 
 
